@@ -29,6 +29,7 @@ export default {
       try {
         await signInWithEmailAndPassword(auth, email.value, password.value);
         alert("Logged in successfully");
+        window.location.href = "/list";
       } catch (error) {
         alert(error.message);
       }

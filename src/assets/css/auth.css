@@ -14,6 +14,7 @@
   width: 100%;
   max-width: 360px;
   text-align: center;
+  position: relative;
 }
 
 h1 {
