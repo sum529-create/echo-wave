@@ -193,6 +193,8 @@ export default {
           displayName: this.username,
         });
         await setDoc(doc(collection(db, "users"), user.uid), {
+          userId: user.uid,
+          username: user.displayName || "손님",
           birth: this.birth,
           gender: this.selectedGender,
         });

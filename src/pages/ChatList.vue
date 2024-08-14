@@ -1,21 +1,26 @@
 <template>
-  <div class="chat-list-container">
-    <div class="chat-list-header">
-      <h2 class="chat-list-title">Chat Rooms</h2>
-      <button class="create-chat-button">+ Create New Chat</button>
+  <div class="container">
+    <Profile />
+    <div class="chat-list-container">
+      <div class="chat-list-header">
+        <h2 class="chat-list-title">Chat Rooms</h2>
+        <button class="create-chat-button">+ Create New Chat</button>
+      </div>
+      <ul class="chat-list">
+        <li v-for="chat in chatRooms" :key="chat.id" class="chat-item">
+          <strong class="chat-title">{{ chat.title }}</strong>
+          <span class="chat-last-message">{{ chat.lastMessage }}</span>
+        </li>
+      </ul>
     </div>
-    <ul class="chat-list">
-      <li v-for="chat in chatRooms" :key="chat.id" class="chat-item">
-        <strong class="chat-title">{{ chat.title }}</strong>
-        <span class="chat-last-message">{{ chat.lastMessage }}</span>
-      </li>
-    </ul>
   </div>
 </template>
 
 <script>
+import Profile from "../components/Profile.vue";
 export default {
   name: "ChatList",
+  components: { Profile },
   data() {
     return {
       chatRooms: [
@@ -34,14 +39,25 @@ export default {
 
 <style scoped>
 /* 컨테이너 스타일링 */
-.chat-list-container {
-  width: 100%;
-  max-width: 600px;
+.container {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-auto-flow: column;
+  gap: 20px;
   margin: 20px auto;
+  max-width: 1280px;
+  padding: 0 2rem;
+}
+.chat-list-container {
+  grid-column: 2 / span 2;
+  width: 100%;
+  min-width: 500px;
+  max-width: 700px;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
+  overflow: hidden;
 }
 
 /* 헤더 스타일링 */
@@ -102,5 +118,11 @@ export default {
   font-size: 0.9rem;
   color: #555555;
   margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+  .chat-list-container {
+    min-width: auto;
+  }
 }
 </style>
