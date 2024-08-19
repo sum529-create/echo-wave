@@ -1,12 +1,12 @@
 <template>
   <div>
-    <!-- 팝업을 열기 위한 버튼 -->
-    <button @click="openPopup" class="open-popup-button">Open Popup</button>
-
-    <!-- 레이어 팝업 -->
-    <div v-if="isPopupVisible" class="popup-overlay">
+    <div
+      v-if="isPopupVisible ? true : false"
+      @click="closePopup"
+      class="popup-overlay"
+    >
       <div class="popup-content">
-        <h2 class="popup-title">Layer Popup</h2>
+        <h2 class="popup-title">Create New Chat</h2>
         <p>This is a simple layer popup component.</p>
         <button @click="closePopup" class="close-popup-button">Close</button>
       </div>
@@ -16,18 +16,22 @@
 
 <script>
 export default {
-  name: "LayerPopup",
+  name: "CreateChat",
+  props: {
+    isPopupVisible: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+  },
+  mounted() {},
   data() {
-    return {
-      isPopupVisible: false,
-    };
+    return {};
   },
   methods: {
-    openPopup() {
-      this.isPopupVisible = true;
-    },
     closePopup() {
-      this.isPopupVisible = false;
+      console.log("???");
+      this.$emit("close");
     },
   },
 };

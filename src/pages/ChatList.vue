@@ -4,7 +4,9 @@
     <div class="chat-list-container">
       <div class="chat-list-header">
         <h2 class="chat-list-title">Chat Rooms</h2>
-        <button class="create-chat-button">+ Create New Chat</button>
+        <button @click="openPopup" class="create-chat-button">
+          + Create New Chat
+        </button>
       </div>
       <ul class="chat-list">
         <li v-for="chat in chatRooms" :key="chat.id" class="chat-item">
@@ -13,16 +15,19 @@
         </li>
       </ul>
     </div>
+    <create-chat :isPopupVisible="isPopupVisible" @close="closePopup" />
   </div>
 </template>
 
 <script>
 import Profile from "../components/Profile.vue";
+import CreateChat from "../components/CreateChat.vue";
 export default {
   name: "ChatList",
-  components: { Profile },
+  components: { Profile, CreateChat },
   data() {
     return {
+      isPopupVisible: false,
       chatRooms: [
         { id: 1, title: "General", lastMessage: "Hello everyone!" },
         {
@@ -33,6 +38,15 @@ export default {
         { id: 3, title: "Social", lastMessage: "What's the plan for tonight?" },
       ],
     };
+  },
+  methods: {
+    openPopup() {
+      this.isPopupVisible = true;
+    },
+    closePopup() {
+      console.log("??!!");
+      this.isPopupVisible = !this.isPopupVisible;
+    },
   },
 };
 </script>
