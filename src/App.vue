@@ -12,9 +12,10 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script>
 import "./assets/css/reset.css";
 import "./assets/css/common.css";
+export default {};
 </script>
 
 <style>

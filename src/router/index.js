@@ -1,11 +1,14 @@
 // src/router/index.js
+import Vue from "vue";
+import VueRouter from "vue-router";
 import { onAuthStateChanged } from "firebase/auth";
-import { createRouter, createWebHistory } from "vue-router";
 import { auth } from "../firebase";
 import Auth from "../pages/Auth.vue";
 import Chat from "../pages/Chat.vue";
 import ChatList from "../pages/ChatList.vue";
 import SignUp from "../pages/SignUp.vue";
+
+Vue.use(VueRouter);
 
 const routes = [
   { path: "/login", component: Auth },
@@ -15,8 +18,8 @@ const routes = [
   { path: "/", component: Auth }, // 기본 경로를 Auth 컴포넌트로 설정
 ];
 
-const router = createRouter({
-  history: createWebHistory(),
+const router = new VueRouter({
+  mode: "history",
   routes,
 });
 
