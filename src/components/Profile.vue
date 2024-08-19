@@ -1,25 +1,29 @@
 <template>
   <div class="profile-wrapper">
     <div class="image-wrapper">
-      <div v-if="flagProfileImg" class="user-change-profile">
-        <img src="/vite.svg" :alt="`${user.displayName}'s Profile img`" />
+      <div class="profile-image-area">
+        <img
+          v-if="profileImgUrl"
+          :src="profileImgUrl"
+          :alt="`${user.displayName}'s Profile img`"
+        />
+        <svg
+          v-else
+          data-slot="icon"
+          fill="#ff9a8b"
+          stroke-width="1"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+          ></path>
+        </svg>
       </div>
-      <svg
-        v-else
-        data-slot="icon"
-        fill="#ff9a8b"
-        stroke-width="1"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-        ></path>
-      </svg>
       <input
         @change="changeUserImg"
         id="profile"
@@ -46,8 +50,9 @@
           </svg>
         </div>
       </label>
-      <div v-if="flagProfileImg" class="user-change-profile delete-profile">
+      <div v-if="profileImgUrl" class="user-change-profile delete-profile">
         <svg
+          @click="resetProfileImg"
           data-slot="icon"
           fill="none"
           stroke-width="1.5"
@@ -103,6 +108,9 @@
       </div>
       <span @click="onLogOut" class="sign-out">로그아웃</span>
     </div>
+    <div v-if="isLoading" class="loading-screen">
+      <div class="spinner"></div>
+    </div>
   </div>
 </template>
 
@@ -118,7 +126,12 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
-import { getDownloadURL, uploadBytes } from "firebase/storage";
+import {
+  getDownloadURL,
+  uploadBytes,
+  ref,
+  deleteObject,
+} from "firebase/storage";
 export default {
   name: "Profile",
   data() {
@@ -126,15 +139,25 @@ export default {
       user: null,
       newUserId: "",
       flagInputBox: false,
-      flagProfileImg: false,
       profileImgUrl: "",
+      isLoading: false,
     };
   },
   mounted() {
     this.user = auth.currentUser;
     this.newUserId = this.user.displayName;
+    this.fetchProfileImg();
+  },
+  watch: {
+    profileImgUrl: function (newVal, oldVal) {
+      this.fetchProfileImg();
+    },
   },
   methods: {
+    fetchProfileImg() {
+      if (!this.user?.uid) return;
+      this.profileImgUrl = this.user.photoURL;
+    },
     async onLogOut() {
       if (confirm("로그아웃 하시겠습니까?")) {
         await auth.signOut();
@@ -179,27 +202,61 @@ export default {
     },
     async changeUserImg(e) {
       const { files } = e.target;
+      const MAX_FILE_SIZE = 2 * 1024 * 1024;
       if (!this.user) return;
       if (files && files.length === 1) {
         const file = files[0];
-        const locationRef = ref(storage, `users/${this.user?.uid}`);
-        console.log(locationRef);
-        const result = await uploadBytes(locationRef, file);
-        console.log(reseult);
-        const profileUrl = await getDownloadURL(result.ref);
-        this.profileImgUrl = profileUrl;
-        await updateProfile(this.user, {
-          photoURL: profileUrl,
-        });
+        if (file.size > MAX_FILE_SIZE) {
+          alert("업로드 가능한 파일 크기는 2MB입니다.");
+          return;
+        }
+        try {
+          const locationRef = ref(storage, `users/${this.user?.uid}`);
+          const result = await uploadBytes(locationRef, file);
+          const profileUrl = await getDownloadURL(result.ref);
 
-        const profileDocRef = doc(collection(db, "users"), this.user.uid);
-        await setDoc(profileDocRef, {
-          photoURL: profileUrl,
-        });
+          await updateProfile(this.user, {
+            photoURL: profileUrl,
+          });
+          const profileDocRef = doc(collection(db, "users"), this.user.uid);
+          await setDoc(
+            profileDocRef,
+            {
+              photoURL: profileUrl,
+            },
+            { merge: true }
+          );
+          this.fetchProfileImg();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    },
+    async resetProfileImg() {
+      if (!this.user) return;
+      if (confirm("프로필 이미지를 초기화 하시겠습니까?")) {
+        try {
+          await updateProfile(this.user, {
+            photoURL: "",
+          });
+          const locationRef = ref(storage, `users/${this.user.uid}`);
+          await deleteObject(locationRef);
+          const userRef = doc(collection(db, "users"), this.user.uid);
+          await setDoc(
+            userRef,
+            {
+              photoURL: "",
+            },
+            { merge: true }
+          );
+          this.fetchProfileImg();
+        } catch (error) {
+          console.error("Faild to Reset Profile Image", error);
+        }
       }
       try {
       } catch (error) {
-        console.error(error);
+        console.error("Failed to Reset Profile Image", error);
       }
     },
   },
@@ -215,22 +272,30 @@ export default {
   width: 100%;
   height: 0;
   padding-bottom: 100%;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  /* overflow: hidden; */
   position: relative;
-  background-color: #fff;
 }
 .image-wrapper .profile-file {
   display: none;
 }
-.image-wrapper svg,
-.image-wrapper img {
+.image-wrapper .profile-image-area {
   position: absolute;
+  border: 2px solid #fff;
+  background-color: #fff;
+  overflow: hidden;
+  border-radius: 50%;
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
+}
+
+.image-wrapper .profile-image-area img,
+.image-wrapper .profile-image-area svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
 }
 
 .image-wrapper svg {
@@ -248,6 +313,7 @@ export default {
   border: 2px solid #fab1a0;
   background-color: #fab1a0;
   cursor: pointer;
+  z-index: 2;
 }
 .image-wrapper .user-change-profile.delete-profile {
   left: 0;
