@@ -52,6 +52,7 @@
       </ul>
     </div>
     <create-chat
+      v-if="isPopupVisible"
       :isPopupVisible="isPopupVisible"
       @close="closePopup"
       @create="getChatRoomList"
@@ -194,12 +195,14 @@ export default {
 /* 컨테이너 스타일링 */
 .container {
   display: grid;
+  height: calc(100vh - 121px);
+  position: relative;
   grid-template-columns: 1fr 3fr;
   grid-auto-flow: column;
   gap: 20px;
-  margin: 20px auto;
+  margin: 0px auto;
   max-width: 1280px;
-  padding: 0 2rem;
+  padding: 2rem;
 }
 .chat-list-container {
   grid-column: 2 / span 2;
@@ -211,6 +214,9 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
   overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 헤더 스타일링 */
@@ -247,6 +253,10 @@ export default {
   list-style: none;
   padding: 0;
   margin: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-item {

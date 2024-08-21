@@ -267,6 +267,7 @@ export default {
 .profile-wrapper {
   position: relative;
   grid-column: 1;
+  height: fit-content;
 }
 .image-wrapper {
   width: 100%;

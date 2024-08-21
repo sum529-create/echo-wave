@@ -29,33 +29,38 @@ import {
 
 export default {
   name: "Chat",
-  setup() {
-    const newMessage = ref("");
-    const messages = ref([]);
-
-    onMounted(() => {
-      const q = query(collection(db, "messages"), orderBy("createdAt"));
-      onSnapshot(q, (snapshot) => {
-        messages.value = snapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        }));
-      });
-    });
-
-    const sendMessage = async () => {
-      if (newMessage.value.trim() === "") return;
+  data() {
+    return {
+      newMessage: "",
+      messages: [],
+    };
+  },
+  methods: {
+    async sendMessage() {
+      if (this.newMessage.trim() === "") return;
 
       await addDoc(collection(db, "messages"), {
-        text: newMessage.value,
+        text: this.newMessage,
         user: auth.currentUser.email,
         createdAt: new Date(),
       });
 
-      newMessage.value = "";
-    };
-
-    return { newMessage, messages, sendMessage };
+      this.newMessage = "";
+    },
+  },
+  mounted() {
+    const q = query(collection(db, "messages"), orderBy("createdAt"));
+    this.unsub = onSnapshot(q, (snapshot) => {
+      this.messages = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+    });
+  },
+  beforeDestroy() {
+    if (this.unsub) {
+      this.unsub(); // onSnapshot 리스너를 정리
+    }
   },
 };
 </script>
@@ -64,7 +69,8 @@ export default {
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  position: relative;
   background-color: #f4f4f4;
   padding: 20px;
 }
