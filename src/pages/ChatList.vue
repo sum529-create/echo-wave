@@ -22,8 +22,16 @@
                 chat.participants.length + "/" + chat.peopleLimit
               }}</span>
             </div>
-            <div class="chat-title-wrapper-right">
-              <button @click="deleteChatRoom" class="chat-delete-btn">X</button>
+            <div
+              v-if="user.uid === chat.userId"
+              class="chat-title-wrapper-right"
+            >
+              <button
+                @click="deleteChatRoom(chat.userId, chat.chatId)"
+                class="chat-delete-btn"
+              >
+                X
+              </button>
             </div>
           </div>
           <div class="chat-message-wrapper">
@@ -51,6 +59,7 @@ import Profile from "../components/Profile.vue";
 import CreateChat from "../components/CreateChat.vue";
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -66,16 +75,17 @@ export default {
     return {
       isPopupVisible: false,
       chatRooms: [],
+      user: {},
     };
   },
   computed: {},
   async mounted() {
     await this.getChatRoomList();
+    this.user = auth.currentUser;
   },
   methods: {
     async getChatRoomList() {
       try {
-        const user = auth.currentUser;
         const chatQuery = query(
           collection(db, "chats"),
           orderBy("lastMessageTimeStamp", "desc"),
@@ -157,10 +167,15 @@ export default {
         }
       }
     },
-    async deleteChatRoom() {
-      try {
-      } catch (error) {
-        console.error("Failed to Delete Chat Room", error);
+    async deleteChatRoom(userId, chatId) {
+      if (this.user?.uid !== userId) return;
+      if (confirm("해당 채팅방을 삭제하시겠습니까?")) {
+        try {
+          await deleteDoc(doc(db, "chats", chatId));
+          await this.getChatRoomList();
+        } catch (error) {
+          console.error("Failed to Delete Chat Room", error);
+        }
       }
     },
   },
