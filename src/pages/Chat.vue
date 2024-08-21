@@ -44,13 +44,25 @@
       </div>
     </div>
     <div class="messages-container">
-      <div v-for="message in messages" :key="message.id" class="message">
-        <strong class="message-user">{{ message.user }}:</strong>
-        {{ message.text }}
+      <div
+        v-for="message in messages"
+        :key="message.id"
+        class="message"
+        :class="user.uid === message.userId && 'message-color'"
+      >
+        <div class="messages-container-left">
+          <strong class="message-user">{{ message.userName }}: </strong>
+          <span>{{ message.text }}</span>
+        </div>
+        <span class="message-time">{{ message.createdAt }}</span>
       </div>
     </div>
     <div class="message-input-container">
-      <input v-model="newMessage" placeholder="Type a message" />
+      <input
+        v-model="newMessage"
+        placeholder="채팅을 입력해보세요."
+        @keyup.enter="sendMessage"
+      />
       <button @click="sendMessage">Send</button>
     </div>
   </div>
@@ -67,6 +79,8 @@ import {
   orderBy,
   doc,
   getDoc,
+  updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
 
 export default {
@@ -98,11 +112,17 @@ export default {
     },
     async sendMessage() {
       if (this.newMessage.trim() === "") return;
-
-      await addDoc(collection(db, "messages"), {
-        text: this.newMessage,
-        user: auth.currentUser.email,
-        createdAt: new Date(),
+      const chatDocRef = doc(db, "chats", this.chatId);
+      await updateDoc(chatDocRef, {
+        messages: arrayUnion({
+          text: this.newMessage,
+          user: auth.currentUser.email,
+          userName: this.user.displayName,
+          userId: this.user.uid,
+          createdAt: new Date().toLocaleString(),
+        }),
+        lastMessage: this.newMessage,
+        lastMessageTimeStamp: new Date().toLocaleString(),
       });
 
       this.newMessage = "";
@@ -113,12 +133,12 @@ export default {
   },
   async mounted() {
     await this.fetchChatInfo();
-    const q = query(collection(db, "messages"), orderBy("createdAt"));
-    this.unsub = onSnapshot(q, (snapshot) => {
-      this.messages = snapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
+    const chatDocRef = doc(db, "chats", this.chatId);
+    this.unsub = onSnapshot(chatDocRef, (doc) => {
+      if (doc.exists()) {
+        const chatData = doc.data();
+        this.messages = chatData.messages || []; // 메시지 배열을 가져옴
+      }
     });
   },
   beforeDestroy() {
@@ -230,12 +250,25 @@ export default {
   border: 1px solid #ddd;
 }
 
+.messages-container .message-time {
+  color: #999;
+  font-size: 12px;
+}
+
 .message {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   margin-bottom: 10px;
   padding: 10px;
   border-radius: 5px;
   background: #fff;
   border: 1px solid #ddd;
+  position: relative;
+}
+
+.message.message-color {
+  background-color: #ffcccc;
 }
 
 .message-user {

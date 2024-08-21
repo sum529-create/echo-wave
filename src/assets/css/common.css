@@ -927,3 +927,16 @@ input[type="submit"] {
     transform: rotate(360deg);
   }
 }
+
+/* info text */
+.info-txt {
+  color: tomato;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  word-break: keep-all;
+  text-align: left;
+  display: inline-block;
+  text-indent: -7px;
+  padding-left: 7px;
+}

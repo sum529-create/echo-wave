@@ -10,8 +10,9 @@ const globalMixin = {
   },
 };
 
+Vue.mixin(globalMixin);
+
 new Vue({
   render: (h) => h(App),
   router,
-  mixins: [globalMixin],
 }).$mount("#app");

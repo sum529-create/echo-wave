@@ -28,20 +28,29 @@ import "../assets/css/auth.css";
 
 export default {
   name: "Auth",
-  setup() {
-    const email = ref("");
-    const password = ref("");
-
-    const login = async () => {
+  data() {
+    return {
+      email: "",
+      password: "",
+    };
+  },
+  methods: {
+    async login() {
+      if (!this.email) {
+        alert("이메일을 입력해주세요.");
+        return;
+      }
+      if (!this.password) {
+        alert("패스워드를 입력해주세요.");
+        return;
+      }
       try {
-        await signInWithEmailAndPassword(auth, email.value, password.value);
+        await signInWithEmailAndPassword(auth, this.email, this.password);
         window.location.href = "/list";
       } catch (error) {
         alert(error.message);
       }
-    };
-
-    return { email, password, login };
+    },
   },
 };
 </script>

@@ -31,14 +31,17 @@
           name="password"
         />
       </div>
+      <span class="info-txt"
+        >※ 비밀번호는 8자이상, 대소문자, 소문자, 숫자, 특수문자가
+        포함되어야합니다.</span
+      >
       <div class="input-icon input-birth">
         <input
           v-model="birth"
+          @input="validateDate"
           type="number"
-          minlength="6"
-          maxlength="6"
           required
-          placeholder="생년월일 6자리"
+          placeholder="생년월일 6자리 (ex. YYMMDD)"
           name="birth"
         />
       </div>
@@ -54,7 +57,7 @@
             value="male"
             v-model="selectedGender"
           />
-          <span class="button-text">Male</span>
+          <span class="button-text">남성</span>
         </label>
 
         <label
@@ -68,7 +71,7 @@
             value="female"
             v-model="selectedGender"
           />
-          <span class="button-text">Female</span>
+          <span class="button-text">여성</span>
         </label>
 
         <label
@@ -82,7 +85,7 @@
             value="other"
             v-model="selectedGender"
           />
-          <span class="button-text">Other</span>
+          <span class="button-text">미선택</span>
         </label>
       </div>
       <button @click="onSubmit()" class="btn_pink btn_sign_up">가입하기</button>
@@ -104,6 +107,7 @@ import "../assets/css/auth.css";
 import { collection, doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 export default {
+  name: "SignUp",
   data() {
     return {
       username: "",
@@ -113,6 +117,7 @@ export default {
       selectedGender: "",
       isLoading: false,
       errorMessage: "",
+      isValidDate: true,
     };
   },
   methods: {
@@ -147,6 +152,36 @@ export default {
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailPattern.test(email);
     },
+    validateDate() {
+      const datePattern = /^\d{6}$/; // YYMMDD 형식의 정규 표현식
+      const isMatch = datePattern.test(this.birth);
+
+      if (isMatch) {
+        // 추가적으로 날짜 유효성 검사를 진행할 수 있습니다.
+        const year = parseInt(this.birth.slice(0, 2), 10);
+        const month = parseInt(this.birth.slice(2, 4), 10);
+        const day = parseInt(this.birth.slice(4, 6), 10);
+
+        // YYMMDD 형식의 년도를 4자리로 변환 (1900년대 또는 2000년대)
+        const fullYear =
+          year >= 0 && year <= 99
+            ? year >= 50
+              ? 1900 + year
+              : 2000 + year
+            : year;
+
+        // 날짜 객체 생성하여 유효성 검사
+        const date = new Date(fullYear, month - 1, day);
+
+        // 날짜 객체가 입력값과 일치하는지 확인
+        this.isValidDate =
+          date.getFullYear() === fullYear &&
+          date.getMonth() === month - 1 &&
+          date.getDate() === day;
+      } else {
+        this.isValidDate = false;
+      }
+    },
     async onSubmit() {
       if (this.isLoading) return;
       if (!this.username) {
@@ -159,6 +194,7 @@ export default {
       } else {
         if (!this.isValidEmail(this.email)) {
           alert("유효한 이메일 형식이 아닙니다. 다시 확인해주세요");
+          this.email = "";
           return;
         }
       }
@@ -174,6 +210,11 @@ export default {
       }
       if (!this.birth) {
         alert("생일을 입력해주세요.");
+        return;
+      }
+      if (!this.isValidDate) {
+        alert("유효하지 않은 생일형식입니다.\n다시 입력해주세요 (ex. 990101)");
+        this.birth = "";
         return;
       }
       if (!this.selectedGender) {
@@ -327,7 +368,7 @@ input {
 }
 
 .btn_sign_up {
-  margin-top: 1rem;
+  margin: 1rem 0;
 }
 
 .login_to a {

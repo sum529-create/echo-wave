@@ -39,7 +39,6 @@
               chat.lastMessage ? chat.lastMessage : "채팅방을 개설하였습니다."
             }}</span>
             <div class="chat-message-time">
-              {{ chat.lastMessage ? chat.lastMessageTimeStamp : "" }}
               {{ convertChatTime(chat.lastMessageTimeStamp) }}
             </div>
           </div>

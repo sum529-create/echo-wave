@@ -17,6 +17,10 @@
   position: relative;
 }
 
+.auth-form input {
+  margin-bottom: 10px;
+}
+
 h1 {
   color: #ff6f61;
   margin-bottom: 1rem;
