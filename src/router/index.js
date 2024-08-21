@@ -11,10 +11,20 @@ import SignUp from "../pages/SignUp.vue";
 Vue.use(VueRouter);
 
 const routes = [
-  { path: "/login", component: Auth },
-  { path: "/sign-up", component: SignUp },
-  { path: "/list", component: ChatList, meta: { requiresAuth: true } },
-  { path: "/chat", component: Chat, meta: { requiresAuth: true } },
+  { path: "/login", component: Auth, name: "Login" },
+  { path: "/sign-up", component: SignUp, name: "SignUp" },
+  {
+    path: "/list",
+    component: ChatList,
+    meta: { requiresAuth: true },
+    name: "ChatList",
+  },
+  {
+    path: "/chat/:chatId",
+    component: Chat,
+    meta: { requiresAuth: true },
+    name: "Chat",
+  },
   { path: "/", component: Auth }, // 기본 경로를 Auth 컴포넌트로 설정
 ];
 
@@ -43,11 +53,19 @@ router.beforeEach(async (to, from, next) => {
       if (user) {
         next(); // 인증이 필요한 페이지로 접근
       } else {
-        next("/login"); // 인증이 필요한 페이지에 비인증 상태로 접근 시 /login으로 리디렉션
+        if (to.path !== "/login") {
+          next("/login");
+        } else {
+          next(); // 로그인 페이지에서 리디렉션 방지
+        }
       }
     } catch (error) {
       console.error("Error checking auth state:", error);
-      next("/login"); // 오류 발생 시 /login으로 리디렉션
+      if (to.path !== "/login") {
+        next("/login");
+      } else {
+        next();
+      }
     }
   } else {
     // 기본 경로에 대해 리디렉션 처리
@@ -57,7 +75,7 @@ router.beforeEach(async (to, from, next) => {
         if (user) {
           next("/list"); // 로그인 상태일 때 /list로 리디렉션
         } else {
-          next("/login"); // 로그인하지 않았을 때 /login으로 리디렉션
+          next(); // 로그인하지 않았을 때 /login으로 리디렉션
         }
       } catch (error) {
         console.error("Error checking auth state:", error);

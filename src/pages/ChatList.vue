@@ -9,7 +9,12 @@
         </button>
       </div>
       <ul class="chat-list">
-        <li v-for="chat in chatRooms" :key="chat.id" class="chat-item">
+        <li
+          v-for="chat in chatRooms"
+          @click="goToChat(chat.chatId)"
+          :key="chat.id"
+          class="chat-item"
+        >
           <div class="chat-title-wrapper">
             <div class="chat-title-wrapper-left">
               <strong
@@ -84,6 +89,9 @@ export default {
     this.user = auth.currentUser;
   },
   methods: {
+    goToChat(chatId) {
+      this.$router.push({ name: "Chat", params: { chatId } });
+    },
     async getChatRoomList() {
       try {
         const chatQuery = query(
