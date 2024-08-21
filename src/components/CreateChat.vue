@@ -70,6 +70,7 @@ export default {
     },
     async createChatRoom() {
       const user = auth.currentUser;
+      const photoUrl = user?.photoURL;
       const chatId = uuidv4();
       if (!this.title) {
         alert("생성하실 채팅방 제목을 입력해주세요.");
@@ -91,7 +92,12 @@ export default {
           createdAt: new Date().toLocaleString(),
           lastMessage: "",
           lastMessageTimeStamp: new Date().toLocaleString(),
-          participants: [user.uid],
+          participants: [
+            {
+              uid: user.uid,
+              photoUrl: photoUrl,
+            },
+          ],
           messages: [],
           peopleLimit: this.peopleLimit,
           // ageLimit: this.ageLimit,

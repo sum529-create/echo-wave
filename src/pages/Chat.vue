@@ -1,7 +1,47 @@
 <template>
   <div class="chat-container">
     <div class="chat-header">
-      <h1>Chat Room</h1>
+      <div class="chat-header-left">
+        <div class="profile-pics">
+          <img
+            v-for="(data, i) in chatInfo.participants"
+            :key="i"
+            :src="data.photoUrl ? data.photoUrl : '/logo.png'"
+            :alt="`Profile ${i + 1}`"
+            class="profile-pic"
+            :style="{
+              zIndex: chatInfo.participants.length - i,
+              left: `${i * 15}px`,
+              top: `${Math.floor(i / 2) * 15}px`,
+            }"
+          />
+        </div>
+        <div class="chat-info">
+          <h1>{{ chatInfo.title }}</h1>
+          <span>{{
+            (chatInfo.participants && chatInfo.participants.length) +
+            "/" +
+            chatInfo.peopleLimit
+          }}</span>
+        </div>
+      </div>
+      <div @click="exitChatRoom" class="chat-header-right">
+        <svg
+          data-slot="icon"
+          fill="none"
+          stroke-width="2"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15"
+          ></path>
+        </svg>
+      </div>
     </div>
     <div class="messages-container">
       <div v-for="message in messages" :key="message.id" class="message">
@@ -25,6 +65,8 @@ import {
   onSnapshot,
   query,
   orderBy,
+  doc,
+  getDoc,
 } from "firebase/firestore";
 
 export default {
@@ -33,9 +75,27 @@ export default {
     return {
       newMessage: "",
       messages: [],
+      chatId: null,
+      user: {},
+      chatInfo: {},
     };
   },
+  created() {
+    this.chatId = this.$route.params.chatId;
+    this.user = auth.currentUser;
+  },
   methods: {
+    async fetchChatInfo() {
+      if (!this.user?.uid || !this.chatId) return;
+      try {
+        const chatDocRef = doc(db, "chats", this.chatId);
+        const docSnap = await getDoc(chatDocRef);
+        if (docSnap.exists());
+        this.chatInfo = docSnap.data();
+      } catch (error) {
+        console.error("Failed to Fetch ChatRomm Info");
+      }
+    },
     async sendMessage() {
       if (this.newMessage.trim() === "") return;
 
@@ -47,8 +107,12 @@ export default {
 
       this.newMessage = "";
     },
+    exitChatRoom() {
+      window.location.href = "/list";
+    },
   },
-  mounted() {
+  async mounted() {
+    await this.fetchChatInfo();
     const q = query(collection(db, "messages"), orderBy("createdAt"));
     this.unsub = onSnapshot(q, (snapshot) => {
       this.messages = snapshot.docs.map((doc) => ({
@@ -68,6 +132,8 @@ export default {
 <style scoped>
 .chat-container {
   display: flex;
+  max-width: 500px;
+  width: 100%;
   flex-direction: column;
   height: 100%;
   position: relative;
@@ -77,11 +143,82 @@ export default {
 
 .chat-header {
   background-color: #ff6f61; /* 메인 색상 적용 */
-  color: white;
-  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
   text-align: center;
   border-radius: 8px 8px 0 0;
   margin-bottom: 20px;
+}
+
+.chat-header .chat-header-left {
+  display: flex;
+  gap: 10px;
+}
+
+.profile-pics {
+  display: flex;
+  position: relative;
+  width: 50px; /* 전체 프로필 이미지 영역의 넓이 */
+  height: 50px; /* 전체 프로필 이미지 영역의 높이 */
+}
+
+.profile-pic {
+  width: 30px; /* 각 이미지의 크기 */
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid white;
+  position: absolute;
+  background-color: #f0f0f0; /* 배경색, 이미지를 설정하지 않을 경우 표시 */
+  object-fit: cover;
+}
+
+.profile-pic:nth-child(1) {
+  z-index: 4;
+  left: 0;
+  top: 0;
+}
+
+.profile-pic:nth-child(2) {
+  z-index: 3;
+  left: 15px; /* 겹치는 부분을 설정 */
+  top: 0;
+}
+
+.profile-pic:nth-child(3) {
+  z-index: 2;
+  left: 0;
+  top: 15px;
+}
+
+.profile-pic:nth-child(4) {
+  z-index: 1;
+  left: 15px;
+  top: 15px;
+}
+
+.chat-info {
+  text-align: left;
+  line-height: 25px;
+}
+
+.chat-info h1 {
+  margin: 0;
+  font-size: 18px;
+  color: #fff;
+}
+
+.chat-info span {
+  font-size: 14px;
+  color: #888;
+}
+
+.chat-header .chat-header-right {
+  width: 25px;
+  color: white;
+  box-sizing: border-box;
+  cursor: pointer;
 }
 
 .messages-container {
@@ -106,8 +243,10 @@ export default {
 }
 
 .message-input-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 5fr 1fr;
   gap: 10px;
+  margin: 10px 0;
 }
 
 input {

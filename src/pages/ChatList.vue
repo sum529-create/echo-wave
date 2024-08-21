@@ -9,14 +9,9 @@
         </button>
       </div>
       <ul class="chat-list">
-        <li
-          v-for="chat in chatRooms"
-          @click="goToChat(chat.chatId)"
-          :key="chat.id"
-          class="chat-item"
-        >
+        <li v-for="chat in chatRooms" :key="chat.id" class="chat-item">
           <div class="chat-title-wrapper">
-            <div class="chat-title-wrapper-left">
+            <div @click="goToChat(chat.chatId)" class="chat-title-wrapper-left">
               <strong
                 class="chat-title"
                 :class="isNewChatRoom(chat.createdAt) && 'new-chat-title'"
@@ -264,7 +259,6 @@ export default {
   flex-direction: column;
   padding: 15px;
   border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
 }
 
 .chat-item:hover {
@@ -279,6 +273,7 @@ export default {
   display: flex;
   flex-wrap: nowrap;
   justify-content: space-between;
+  gap: 20px;
 }
 
 .chat-item .chat-title-wrapper .chat-title-wrapper-right button {
@@ -287,7 +282,11 @@ export default {
   line-height: 24px;
 }
 
-/* 채팅 제목 스타일링 */
+.chat-item .chat-title-wrapper .chat-title-wrapper-left {
+  flex: 1;
+  cursor: pointer;
+}
+
 .chat-item .chat-title-wrapper .chat-title-wrapper-left .chat-title {
   margin-right: 0.25rem;
   font-size: 1.2rem;

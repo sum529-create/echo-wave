@@ -123,6 +123,7 @@ import {
   getDocs,
   query,
   setDoc,
+  updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -226,11 +227,35 @@ export default {
             },
             { merge: true }
           );
+          await this.updatePhotoUrlForUser(this.user.uid, profileUrl);
           this.fetchProfileImg();
         } catch (error) {
           console.error(error);
         }
       }
+    },
+    async updatePhotoUrlForUser(userUid, photoUrl) {
+      const chatsQuery = query(collection(db, "chats"));
+      const querySnapshot = await getDocs(chatsQuery);
+
+      querySnapshot.forEach(async (doc) => {
+        const chatData = doc.data();
+        const participants = chatData.participants;
+
+        const updatedParticipants = participants.map((participant) => {
+          if (participant.uid === userUid) {
+            return {
+              ...participant,
+              photoUrl: photoUrl,
+            };
+          }
+          return participant;
+        });
+
+        await updateDoc(doc.ref, {
+          participants: updatedParticipants,
+        });
+      });
     },
     async resetProfileImg() {
       if (!this.user) return;
@@ -249,6 +274,7 @@ export default {
             },
             { merge: true }
           );
+          await this.updatePhotoUrlForUser(this.user.uid, "");
           this.fetchProfileImg();
         } catch (error) {
           console.error("Faild to Reset Profile Image", error);
