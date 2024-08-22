@@ -14,11 +14,17 @@
             <div @click="goToChat(chat)" class="chat-title-wrapper-left">
               <strong
                 class="chat-title"
-                :class="isNewChatRoom(chat.createdAt) && 'new-chat-title'"
+                :class="{
+                  'new-chat-title': isNewChatRoom(chat.createdAt),
+                  'chat-participating': isParticipantingChat(chat.participants),
+                }"
                 >{{ chat.title }}</strong
               >
-              <span>{{
-                chat.participants.length + "/" + chat.peopleLimit
+              <span class="chat-limit-people">{{
+                chat.participants.length +
+                "/" +
+                chat.peopleLimit +
+                (isParticipantingChat(chat.participants) ? " (참여중)" : "")
               }}</span>
             </div>
             <div
@@ -205,6 +211,9 @@ export default {
         }
       }
     },
+    isParticipantingChat(person) {
+      return person.find((e) => e.uid === this.user.uid) ? true : false;
+    },
   },
 };
 </script>
@@ -313,6 +322,15 @@ export default {
 .chat-item .chat-title-wrapper .chat-title-wrapper-left .chat-title {
   margin-right: 0.25rem;
   font-size: 1.2rem;
+  color: #ff6f61;
+}
+.chat-item .chat-title-wrapper .chat-title-wrapper-left .chat-limit-people {
+  color: #666;
+}
+.chat-item
+  .chat-title-wrapper
+  .chat-title-wrapper-left
+  .chat-title.chat-participating {
   color: #de1b60;
 }
 
