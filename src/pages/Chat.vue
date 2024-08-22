@@ -51,10 +51,16 @@
         :class="user.uid === message.userId && 'message-color'"
       >
         <div class="messages-container-left">
-          <strong class="message-user">{{ message.userName }}: </strong>
-          <span>{{ message.text }}</span>
+          <strong class="message-user"
+            >{{ message.isAnnouncement ? "❤️ " : message.userName + ": " }}
+          </strong>
+          <span :class="{ 'message-notice': message.isAnnouncement }">{{
+            message.text
+          }}</span>
         </div>
-        <span class="message-time">{{ message.createdAt }}</span>
+        <span class="message-time">{{
+          message.isAnnouncement ? "" : message.createdAt
+        }}</span>
       </div>
     </div>
     <div class="message-input-container">
@@ -248,6 +254,11 @@ export default {
   background: white;
   border-radius: 8px;
   border: 1px solid #ddd;
+}
+
+.messages-container .message-notice {
+  font-weight: 700;
+  color: #c0392b;
 }
 
 .messages-container .message-time {

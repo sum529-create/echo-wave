@@ -10,41 +10,61 @@
       </div>
       <ul class="chat-list">
         <li v-for="chat in chatRooms" :key="chat.id" class="chat-item">
-          <div class="chat-title-wrapper">
-            <div @click="goToChat(chat)" class="chat-title-wrapper-left">
-              <strong
-                class="chat-title"
-                :class="{
-                  'new-chat-title': isNewChatRoom(chat.createdAt),
-                  'chat-participating': isParticipantingChat(chat.participants),
-                }"
-                >{{ chat.title }}</strong
-              >
-              <span class="chat-limit-people">{{
-                chat.participants.length +
-                "/" +
-                chat.peopleLimit +
-                (isParticipantingChat(chat.participants) ? " (참여중)" : "")
-              }}</span>
-            </div>
-            <div
-              v-if="user.uid === chat.userId"
-              class="chat-title-wrapper-right"
-            >
-              <button
-                @click="deleteChatRoom(chat.userId, chat.chatId)"
-                class="chat-delete-btn"
-              >
-                X
-              </button>
-            </div>
+          <div class="chat-img-wrapper">
+            <img
+              v-for="(data, i) in chat.participants"
+              :key="i"
+              :src="data.photoUrl ? data.photoUrl : '/logo.png'"
+              :alt="`Profile ${i + 1}`"
+              class="profile-pic"
+              :style="{
+                zIndex: chat.participants.length - i,
+                left: `${i * 15}px`,
+                top: `${Math.floor(i / 2) * 15}px`,
+              }"
+            />
           </div>
-          <div class="chat-message-wrapper">
-            <span class="chat-last-message">{{
-              chat.lastMessage ? chat.lastMessage : "채팅방을 개설하였습니다."
-            }}</span>
-            <div class="chat-message-time">
-              {{ convertChatTime(chat.lastMessageTimeStamp) }}
+          <div class="chat-text-wrapper">
+            <div class="chat-title-wrapper">
+              <div @click="goToChat(chat)" class="chat-title-wrapper-left">
+                <strong
+                  class="chat-title"
+                  :class="{
+                    'new-chat-title': isNewChatRoom(chat.createdAt),
+                    'chat-participating': isParticipantingChat(
+                      chat.participants
+                    ),
+                  }"
+                  >{{ chat.title }}</strong
+                >
+                <span class="chat-limit-people">{{
+                  chat.participants.length +
+                  "/" +
+                  chat.peopleLimit +
+                  (isParticipantingChat(chat.participants) ? " (참여중)" : "")
+                }}</span>
+              </div>
+              <div
+                v-if="user.uid === chat.userId"
+                class="chat-title-wrapper-right"
+              >
+                <button
+                  @click="deleteChatRoom(chat.userId, chat.chatId)"
+                  class="chat-delete-btn"
+                >
+                  X
+                </button>
+              </div>
+            </div>
+            <div class="chat-message-wrapper">
+              <span class="chat-last-message">{{
+                chat.lastMessage
+                  ? chat.lastMessage
+                  : "🎊 채팅방을 개설하였습니다. 🎊"
+              }}</span>
+              <div class="chat-message-time">
+                {{ convertChatTime(chat.lastMessageTimeStamp) }}
+              </div>
             </div>
           </div>
         </li>
@@ -109,6 +129,17 @@ export default {
                 uid: this.user.uid,
                 photoUrl: this.user.photoURL,
               }),
+              messages: arrayUnion({
+                text: "[🙋‍♀️ " + this.user.displayName + "님이 입장하셨습니다.]",
+                user: this.user.email,
+                userName: this.user.displayName,
+                userId: this.user.uid,
+                createdAt: new Date().toLocaleString(),
+                isAnnouncement: true,
+              }),
+              lastMessage:
+                "[🙋‍♀️ " + this.user.displayName + "님이 입장하셨습니다.]",
+              lastMessageTimeStamp: new Date().toLocaleString(),
             });
           } else {
             return;
@@ -288,7 +319,7 @@ export default {
 
 .chat-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   padding: 15px;
   border-bottom: 1px solid #f0f0f0;
 }
@@ -301,33 +332,92 @@ export default {
   border-bottom: none;
 }
 
-.chat-item .chat-title-wrapper {
+.chat-item .chat-img-wrapper {
+  display: flex;
+  position: relative;
+  width: 50px; /* 전체 프로필 이미지 영역의 넓이 */
+  height: 50px; /* 전체 프로필 이미지 영역의 높이 */
+}
+.chat-item .chat-img-wrapper .profile-pic {
+  width: 30px; /* 각 이미지의 크기 */
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid white;
+  position: absolute;
+  background-color: #f0f0f0; /* 배경색, 이미지를 설정하지 않을 경우 표시 */
+  object-fit: cover;
+}
+
+.chat-item .chat-img-wrapper .profile-pic:nth-child(1) {
+  z-index: 4;
+  left: 0;
+  top: 0;
+}
+
+.chat-item .chat-img-wrapper .profile-pic:nth-child(2) {
+  z-index: 3;
+  left: 15px; /* 겹치는 부분을 설정 */
+  top: 0;
+}
+
+.chat-item .chat-img-wrapper .profile-pic:nth-child(3) {
+  z-index: 2;
+  left: 0;
+  top: 15px;
+}
+
+.chat-item .chat-img-wrapper .profile-pic:nth-child(4) {
+  z-index: 1;
+  left: 15px;
+  top: 15px;
+}
+
+.chat-item .chat-text-wrapper {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.chat-item .chat-text-wrapper .chat-title-wrapper {
   display: flex;
   flex-wrap: nowrap;
   justify-content: space-between;
   gap: 20px;
 }
 
-.chat-item .chat-title-wrapper .chat-title-wrapper-right button {
+.chat-item
+  .chat-text-wrapper
+  .chat-title-wrapper
+  .chat-title-wrapper-right
+  button {
   color: #333;
   padding: 0;
   line-height: 24px;
 }
 
-.chat-item .chat-title-wrapper .chat-title-wrapper-left {
+.chat-item .chat-text-wrapper .chat-title-wrapper .chat-title-wrapper-left {
   flex: 1;
   cursor: pointer;
 }
 
-.chat-item .chat-title-wrapper .chat-title-wrapper-left .chat-title {
+.chat-item
+  .chat-text-wrapper
+  .chat-title-wrapper
+  .chat-title-wrapper-left
+  .chat-title {
   margin-right: 0.25rem;
   font-size: 1.2rem;
   color: #ff6f61;
 }
-.chat-item .chat-title-wrapper .chat-title-wrapper-left .chat-limit-people {
+.chat-item
+  .chat-text-wrapper
+  .chat-title-wrapper
+  .chat-title-wrapper-left
+  .chat-limit-people {
   color: #666;
 }
 .chat-item
+  .chat-text-wrapper
   .chat-title-wrapper
   .chat-title-wrapper-left
   .chat-title.chat-participating {
@@ -335,6 +425,7 @@ export default {
 }
 
 .chat-item
+  .chat-text-wrapper
   .chat-title-wrapper
   .chat-title-wrapper-left
   .chat-title.new-chat-title::before {
@@ -355,6 +446,7 @@ export default {
   display: flex;
   flex-wrap: nowrap;
   justify-content: space-between;
+  align-items: center;
 }
 .chat-message-wrapper .chat-last-message {
   font-size: 0.9rem;
