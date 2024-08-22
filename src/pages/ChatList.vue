@@ -11,13 +11,12 @@
       <ul class="chat-list">
         <li v-for="chat in chatRooms" :key="chat.id" class="chat-item">
           <div class="chat-title-wrapper">
-            <div @click="goToChat(chat.chatId)" class="chat-title-wrapper-left">
+            <div @click="goToChat(chat)" class="chat-title-wrapper-left">
               <strong
                 class="chat-title"
                 :class="isNewChatRoom(chat.createdAt) && 'new-chat-title'"
                 >{{ chat.title }}</strong
               >
-              <!-- new-chat-title -->
               <span>{{
                 chat.participants.length + "/" + chat.peopleLimit
               }}</span>
@@ -58,6 +57,7 @@
 import Profile from "../components/Profile.vue";
 import CreateChat from "../components/CreateChat.vue";
 import {
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
@@ -66,6 +66,7 @@ import {
   limit,
   orderBy,
   query,
+  updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 export default {
@@ -84,8 +85,31 @@ export default {
     this.user = auth.currentUser;
   },
   methods: {
-    goToChat(chatId) {
-      this.$router.push({ name: "Chat", params: { chatId } });
+    async goToChat(chatInfo) {
+      if (chatInfo) {
+        const isParticipant = chatInfo.participants.find(
+          (participant) => participant.uid === this.user.uid
+        );
+        const chatId = chatInfo.chatId;
+        if (!isParticipant && chatInfo.createdUserId !== this.user.uid) {
+          if (chatInfo.participants.length === chatInfo.peopleLimit) {
+            alert("채팅가능 인원이 초과하였습니다.");
+            return;
+          }
+          if (confirm("해당 채팅룸에 입장하시겠습니까?")) {
+            const chatDocRef = doc(db, "chats", chatId);
+            await updateDoc(chatDocRef, {
+              participants: arrayUnion({
+                uid: this.user.uid,
+                photoUrl: this.user.photoURL,
+              }),
+            });
+          } else {
+            return;
+          }
+        }
+        this.$router.push({ name: "Chat", params: { chatId } });
+      }
     },
     async getChatRoomList() {
       try {
