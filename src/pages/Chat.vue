@@ -33,15 +33,17 @@
         v-for="message in messages"
         :key="message.id"
         class="message"
-        :class="user.uid === message.userId && 'message-color'"
+        :class="{
+          'message-color': user.uid === message.userId,
+          'message-announce': message.isAnnouncement,
+          [`message-user-${message.idx}`]: true,
+        }"
       >
         <div class="messages-container-left">
           <strong class="message-user"
             >{{ message.isAnnouncement ? "❤️ " : message.userName + ": " }}
           </strong>
-          <span :class="{ 'message-notice': message.isAnnouncement }">{{
-            message.text
-          }}</span>
+          <span>{{ message.text }}</span>
         </div>
         <span class="message-time">{{
           message.isAnnouncement ? "" : message.createdAt
@@ -72,6 +74,8 @@ import {
   getDoc,
   updateDoc,
   arrayUnion,
+  deleteDoc,
+  arrayRemove,
 } from "firebase/firestore";
 
 export default {
@@ -89,6 +93,21 @@ export default {
     this.chatId = this.$route.params.chatId;
     this.user = auth.currentUser;
   },
+  async mounted() {
+    await this.fetchChatInfo();
+    const chatDocRef = doc(db, "chats", this.chatId);
+    this.unsub = onSnapshot(chatDocRef, (doc) => {
+      if (doc.exists()) {
+        const chatData = doc.data();
+        this.messages = chatData.messages || []; // 메시지 배열을 가져옴
+      }
+    });
+  },
+  beforeDestroy() {
+    if (this.unsub) {
+      this.unsub(); // onSnapshot 리스너를 정리
+    }
+  },
   methods: {
     async fetchChatInfo() {
       if (!this.user?.uid || !this.chatId) return;
@@ -104,44 +123,72 @@ export default {
     async sendMessage() {
       if (this.newMessage.trim() === "") return;
       const chatDocRef = doc(db, "chats", this.chatId);
-      await updateDoc(chatDocRef, {
-        messages: arrayUnion({
-          text: this.newMessage,
-          user: auth.currentUser.email,
-          userName: this.user.displayName,
-          userId: this.user.uid,
-          createdAt: new Date().toLocaleString(),
-        }),
-        lastMessage: this.newMessage,
-        lastMessageTimeStamp: new Date().toLocaleString(),
-      });
+      try {
+        const chatPersonIdx = this.chatInfo.participants.findIndex(
+          (e) => e.uid === this.user.uid
+        );
+        console.log(chatPersonIdx);
+        await updateDoc(chatDocRef, {
+          messages: arrayUnion({
+            text: this.newMessage,
+            user: auth.currentUser.email,
+            userName: this.user.displayName,
+            userId: this.user.uid,
+            createdAt: new Date().toLocaleString(),
+            idx: chatPersonIdx + 1,
+          }),
+          lastMessage: this.newMessage,
+          lastMessageTimeStamp: new Date().toLocaleString(),
+        });
 
-      this.newMessage = "";
+        this.newMessage = "";
+      } catch (error) {
+        console.error("Failed to send message", error);
+      }
     },
     async exitChatRoom() {
-      if (confirm("채팅방을 나가시겠습니까?")) {
-        this.moveToPage("/list");
-        try {
-        } catch (error) {
-          console.error("Failed To Exit ChatRoom", error);
+      if (!this.chatInfo && !this.user) return;
+      const chatDocRef = doc(db, "chats", this.chatId);
+      if (this.chatInfo.userId === this.user.uid) {
+        if (
+          confirm(
+            "채팅룸 개설자가 퇴장시, 채팅방이 삭제됩니다.\n채팅방을 삭제하시겠습니까?"
+          )
+        ) {
+          try {
+            await deleteDoc(chatDocRef);
+            this.moveToPage("/list");
+          } catch (error) {
+            console.error("Failed To Delete Chat Room", error);
+          }
+        }
+      } else {
+        if (confirm("채팅방을 나가시겠습니까?")) {
+          try {
+            await updateDoc(chatDocRef, {
+              participants: arrayRemove({
+                uid: this.user.uid,
+                photoUrl: this.user.photoURL,
+              }),
+              messages: arrayUnion({
+                text: "[🙇‍♀️ " + this.user.displayName + "님이 퇴장하셨습니다.]",
+                user: this.user.email,
+                userName: this.user.displayName,
+                userId: this.user.uid,
+                createdAt: new Date().toLocaleString(),
+                isAnnouncement: true,
+              }),
+              lastMessage:
+                "[🙇‍♀️ " + this.user.displayName + "님이 퇴장하셨습니다.]",
+              lastMessageTimeStamp: new Date().toLocaleString(),
+            });
+            this.moveToPage("/list");
+          } catch (error) {
+            console.error("Failed To Exit ChatRoom", error);
+          }
         }
       }
     },
-  },
-  async mounted() {
-    await this.fetchChatInfo();
-    const chatDocRef = doc(db, "chats", this.chatId);
-    this.unsub = onSnapshot(chatDocRef, (doc) => {
-      if (doc.exists()) {
-        const chatData = doc.data();
-        this.messages = chatData.messages || []; // 메시지 배열을 가져옴
-      }
-    });
-  },
-  beforeDestroy() {
-    if (this.unsub) {
-      this.unsub(); // onSnapshot 리스너를 정리
-    }
   },
 };
 </script>
@@ -276,11 +323,6 @@ export default {
   border: 1px solid #ddd;
 }
 
-.messages-container .message-notice {
-  font-weight: 700;
-  color: #c0392b;
-}
-
 .messages-container .message-time {
   color: #999;
   font-size: 12px;
@@ -293,17 +335,100 @@ export default {
   margin-bottom: 10px;
   padding: 10px;
   border-radius: 5px;
-  background: #fff;
-  border: 1px solid #ddd;
+  border: 1px solid #ffb74d;
   position: relative;
+  margin-left: 10px;
+}
+
+.message::before {
+  content: "";
+  position: absolute;
+  left: -10px; /* Adjust this to control the position of the tail */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-right: 10px solid #ffb74d;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
 }
 
 .message.message-color {
-  background-color: #ffcccc;
+  margin-left: 0;
+  margin-right: 10px;
 }
 
-.message-user {
-  color: #de1b60; /* 강조 색상 적용 */
+.message.message-color::before {
+  content: "";
+  position: absolute;
+  right: -10px; /* Adjust this to control the position of the tail */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-right: 0;
+  left: auto;
+  border-left: 10px solid #ffcccc;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+.message-user-1 {
+  background-color: #ffb74d; /* 밝은 오렌지 */
+}
+
+.message-user-1 .message-time {
+  color: #b0bec5;
+}
+
+.message-user-1 .message-user {
+  color: #e65100; /* 짙은 오렌지 */
+}
+
+.message-user-2 {
+  background-color: #f48fb1; /* 연한 핑크 */
+}
+
+.message-user-2 .message-time {
+  color: #b0bec5;
+}
+
+.message-user-2 .message-user {
+  color: #c2185b; /* 짙은 핑크 */
+}
+
+.message-user-3 {
+  background-color: #ffab91; /* 파스텔 오렌지 */
+}
+
+.message-user-3 .message-time {
+  color: #cfd8dc;
+}
+
+.message-user-3 .message-user {
+  color: #bf360c; /* 진한 오렌지 */
+}
+
+.message-user-4 {
+  background-color: #fce4ec; /* 크림 핑크 */
+}
+
+.message-user-4 .message-time {
+  color: #cfd8dc;
+}
+
+.message-user-4 .message-user {
+  color: #ad1457; /* 강한 핑크 */
+}
+
+.message.message-announce {
+  background-color: #ffebf0; /* Light pink for notice */
+  border: 1px solid #f8c4d6; /* Slightly darker pink border */
+  color: #d63a5d; /* Darker pink for text */
+  font-weight: bold;
+  text-align: center;
+  font-style: italic;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .message-input-container {

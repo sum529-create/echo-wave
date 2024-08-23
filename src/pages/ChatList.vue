@@ -249,7 +249,7 @@ export default {
 /* 컨테이너 스타일링 */
 .container {
   display: grid;
-  height: calc(100vh - 121px);
+  height: 100%;
   position: relative;
   grid-template-columns: 1fr 3fr;
   grid-auto-flow: column;
