@@ -46,7 +46,7 @@ export default {
       }
       try {
         await signInWithEmailAndPassword(auth, this.email, this.password);
-        window.location.href = "/list";
+        this.moveToPage("/list");
       } catch (error) {
         alert(error.message);
       }

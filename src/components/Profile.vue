@@ -162,7 +162,7 @@ export default {
     async onLogOut() {
       if (confirm("로그아웃 하시겠습니까?")) {
         await auth.signOut();
-        window.location.href = "/login";
+        this.moveToPage("/login");
       }
     },
     onChangeNewUserId(e) {

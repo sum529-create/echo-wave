@@ -41,6 +41,9 @@
         </div>
       </div>
     </div>
+    <div v-if="isLoading" class="loading-screen">
+      <div class="spinner"></div>
+    </div>
   </div>
 </template>
 
@@ -62,6 +65,7 @@ export default {
       title: "",
       ageLimit: "",
       peopleLimit: 0,
+      isLoading: false,
     };
   },
   methods: {
@@ -69,6 +73,7 @@ export default {
       this.$emit("close");
     },
     async createChatRoom() {
+      if (this.isLoading) return;
       const user = auth.currentUser;
       const photoUrl = user?.photoURL;
       const chatId = uuidv4();
@@ -85,12 +90,13 @@ export default {
         return;
       }
       try {
+        this.isLoading = true;
         await setDoc(doc(collection(db, "chats"), chatId), {
           chatId: chatId,
           userId: user.uid,
           title: this.title,
           createdAt: new Date().toLocaleString(),
-          lastMessage: "",
+          lastMessage: "🎊 채팅방을 개설하였습니다. 🎊",
           lastMessageTimeStamp: new Date().toLocaleString(),
           participants: [
             {
@@ -98,11 +104,21 @@ export default {
               photoUrl: photoUrl,
             },
           ],
-          messages: [],
+          messages: [
+            {
+              text: "🎊 채팅방을 개설하였습니다. 🎊",
+              user: user.email,
+              userName: user.displayName,
+              userId: user.uid,
+              createdAt: new Date().toLocaleString(),
+              isAnnouncement: true,
+            },
+          ],
           peopleLimit: this.peopleLimit,
           // ageLimit: this.ageLimit,
         });
         this.$emit("create");
+        this.isLoading = false;
         this.closePopup();
       } catch (error) {
         console.error("Failed to Create Chat Room", error);

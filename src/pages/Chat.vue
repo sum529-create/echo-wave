@@ -2,6 +2,7 @@
   <div class="chat-container">
     <div class="chat-header">
       <div class="chat-header-left">
+        <div @click="moveToPage('/list')" class="chat-return"></div>
         <div class="profile-pics">
           <img
             v-for="(data, i) in chatInfo.participants"
@@ -25,23 +26,7 @@
           }}</span>
         </div>
       </div>
-      <div @click="exitChatRoom" class="chat-header-right">
-        <svg
-          data-slot="icon"
-          fill="none"
-          stroke-width="2"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15"
-          ></path>
-        </svg>
-      </div>
+      <div @click="exitChatRoom" class="chat-header-right icon-exit"></div>
     </div>
     <div class="messages-container">
       <div
@@ -133,8 +118,14 @@ export default {
 
       this.newMessage = "";
     },
-    exitChatRoom() {
-      window.location.href = "/list";
+    async exitChatRoom() {
+      if (confirm("채팅방을 나가시겠습니까?")) {
+        this.moveToPage("/list");
+        try {
+        } catch (error) {
+          console.error("Failed To Exit ChatRoom", error);
+        }
+      }
     },
   },
   async mounted() {
@@ -165,6 +156,7 @@ export default {
   position: relative;
   background-color: #f4f4f4;
   padding: 20px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .chat-header {
@@ -175,12 +167,28 @@ export default {
   padding: 10px;
   text-align: center;
   border-radius: 8px 8px 0 0;
-  margin-bottom: 20px;
 }
 
 .chat-header .chat-header-left {
   display: flex;
   gap: 10px;
+}
+
+.chat-header .chat-header-left .chat-return::before {
+  content: "";
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyBkYXRhLXNsb3Q9Imljb24iIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2U9ImN1cnJlbnRDb2xvciIgdmlld0JveD0iMCAwIDI0IDI0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGFyaWEtbGFiZWw9InRydWUiPgogIDxwYXRoIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTE1Ljc1IDE5LjUgOC4yNSAxMkwxNS43NSA0LjV6Ii8+Cjwvc3ZnPg==");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: invert(100%) sepia(36%) saturate(3%) hue-rotate(261deg)
+    brightness(105%) contrast(100%);
+  transform: translateY(-50%);
+  position: relative;
+  top: 50%;
+  cursor: pointer;
 }
 
 .profile-pics {
@@ -237,13 +245,25 @@ export default {
 
 .chat-info span {
   font-size: 14px;
-  color: #888;
+  color: #333;
 }
 
 .chat-header .chat-header-right {
   width: 25px;
   color: white;
   box-sizing: border-box;
+}
+.chat-header .chat-header-right.icon-exit::before {
+  content: "";
+  display: inline-block;
+  width: 25px;
+  height: 25px;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyBkYXRhLXNsb3Q9Imljb24iIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBhcmlhLWhpZGRlbj0idHJ1ZSI+CiAgPHBhdGgKICAgIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIKICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiCiAgICBkPSJNOC4yNSA5VjUuMjVBMi4yNSAyLjI1IDAgMCAxIDEwLjUgM2g2YTIuMjUgMi4yNSAwIDAgMSAyLjI1IDIuMjV2MTMuNWEyLjI1IDIuMjUgMCAwIDEtMi4yNSAyLjI1aC02YTIuMjUgMi4yNSAwIDAgMS0yLjI1LTIuMjVWMTVtLTMgMC0zLTMKbTAgMCAzLTMKbS0zIDNIMTUiCiAgLz48L3N2Zz4=");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: invert(100%) sepia(36%) saturate(3%) hue-rotate(261deg)
+    brightness(105%) contrast(100%);
   cursor: pointer;
 }
 
@@ -252,7 +272,7 @@ export default {
   overflow-y: auto;
   padding: 10px;
   background: white;
-  border-radius: 8px;
+  border-radius: 0 0 8px 8px;
   border: 1px solid #ddd;
 }
 

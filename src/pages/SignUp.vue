@@ -95,8 +95,11 @@
       <br />
       <span class="login_to">
         계정이 있다면
-        <a href="/">&rarr; 로그인</a>
+        <a @click="moveToPage('/login')" href="javascript:;">&rarr; 로그인</a>
       </span>
+    </div>
+    <div v-if="isLoading" class="loading-screen">
+      <div class="spinner"></div>
     </div>
   </div>
 </template>
@@ -239,7 +242,7 @@ export default {
           birth: this.birth,
           gender: this.selectedGender,
         });
-        window.location.href = "/";
+        this.moveToPage("/login");
         this.isLoading = false;
       } catch (error) {
         console.error("Error during signup:", error);
