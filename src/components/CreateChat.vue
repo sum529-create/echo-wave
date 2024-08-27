@@ -34,10 +34,8 @@
 
         <!-- 버튼들 -->
         <div class="popup-buttons">
-          <button @click="closePopup" class="close-popup-button">Cancel</button>
-          <button @click="createChatRoom" class="create-popup-button">
-            Create
-          </button>
+          <button @click="createChatRoom" class="btn_pink">생성</button>
+          <button @click="closePopup" class="btn_coral">취소</button>
         </div>
       </div>
     </div>
@@ -185,30 +183,6 @@ export default {
 .popup-buttons {
   display: flex;
   justify-content: space-between;
-}
-
-.close-popup-button,
-.create-popup-button {
-  background-color: #de1b60;
-  color: #ffffff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
-  width: 48%;
-}
-
-.close-popup-button:hover {
-  background-color: #c53364;
-}
-
-.create-popup-button {
-  background-color: #4caf50;
-}
-
-.create-popup-button:hover {
-  background-color: #45a049;
+  gap: 14px;
 }
 </style>

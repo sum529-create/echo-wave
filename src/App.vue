@@ -82,7 +82,6 @@ header h1 {
 main {
   flex: 1;
   display: flex;
-  height: calc(100vh - 121px);
   justify-content: center;
   align-items: center;
   background-color: #f4f4f4; /* 부드러운 배경색 */

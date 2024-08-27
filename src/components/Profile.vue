@@ -73,7 +73,7 @@
       <div class="profile-id-wrapper">
         <div v-if="flagInputBox">
           <input type="text" v-model="newUserId" @change="onChangeNewUserId" />
-          <div class="profile-id-buttons">
+          <div class="profile-id-buttons mt10">
             <button @click="editProfileId" class="btn_pink btn-sm">변경</button>
             <button @click="onFlagInputBox" class="btn_coral btn-sm">
               취소
@@ -82,9 +82,7 @@
         </div>
         <div v-else>
           <div class="profile-id-edit-wrapper">
-            <span class="profile-id">
-              {{ user ? user.displayName : "" }}
-            </span>
+            <span class="profile-id">{{ user ? user.displayName : "" }}</span>
             <span class="edit-icon" @click="onFlagInputBox">
               <svg
                 data-slot="icon"
@@ -292,8 +290,11 @@ export default {
 <style scoped>
 .profile-wrapper {
   position: relative;
-  grid-column: 1;
-  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 100px;
+  max-width: 230px;
 }
 .image-wrapper {
   width: 100%;
@@ -330,9 +331,9 @@ export default {
 }
 
 .image-wrapper .user-change-profile {
-  width: 20%;
+  width: 15%;
   height: 0;
-  padding-bottom: 20%;
+  padding-bottom: 15%;
   border-radius: 50%;
   position: absolute;
   bottom: 0;
@@ -414,5 +415,24 @@ export default {
   background-repeat: no-repeat;
   filter: invert(44%) sepia(93%) saturate(1154%) hue-rotate(332deg)
     brightness(103%) contrast(102%);
+}
+
+@media (max-width: 768px) {
+  .profile-wrapper {
+    margin: 0 auto;
+    gap: 20px;
+    width: 100%;
+  }
+  .profile-txt {
+    text-align: center;
+  }
+  .profile-txt .sign-out {
+    width: fit-content;
+    margin: 10px auto;
+    padding-left: 0;
+  }
+  .profile-txt .sign-out::before {
+    left: -24px;
+  }
 }
 </style>

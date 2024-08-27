@@ -274,6 +274,7 @@ export default {
   position: relative;
   width: 50px; /* 전체 프로필 이미지 영역의 넓이 */
   height: 50px; /* 전체 프로필 이미지 영역의 높이 */
+  min-width: 30px;
 }
 
 .profile-pic {

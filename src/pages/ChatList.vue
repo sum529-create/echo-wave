@@ -157,6 +157,8 @@ export default {
                 "[🙋‍♀️ " + this.user.displayName + "님이 입장하셨습니다.]",
               lastMessageTimeStamp: new Date().toLocaleString(),
             });
+          } else {
+            return;
           }
         }
         this.$router.push({ name: "Chat", params: { chatId } });
@@ -277,18 +279,18 @@ export default {
 <style scoped>
 /* 컨테이너 스타일링 */
 .container {
-  display: grid;
-  height: 100%;
-  position: relative;
-  grid-template-columns: 1fr 3fr;
-  grid-auto-flow: column;
-  gap: 20px;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: calc(100vh - 121px);
+  justify-content: center;
+  gap: 40px;
   margin: 0px auto;
   max-width: 1280px;
   padding: 2rem;
 }
 .chat-list-container {
-  grid-column: 2 / span 2;
+  flex: 3;
   width: 100%;
   min-width: 500px;
   max-width: 700px;
@@ -448,6 +450,7 @@ export default {
   .chat-title-wrapper-left
   .chat-limit-people {
   color: #666;
+  word-break: keep-all;
 }
 .chat-item
   .chat-text-wrapper
@@ -484,7 +487,6 @@ export default {
 .chat-message-wrapper .chat-last-message {
   font-size: 0.9rem;
   color: #555555;
-  margin-top: 5px;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
@@ -498,8 +500,38 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 1rem;
+    height: 100%;
+    gap: 20px;
+  }
   .chat-list-container {
     min-width: auto;
+  }
+  .chat-list {
+    overflow-y: hidden;
+  }
+  .chat-list .chat-item {
+    flex-direction: column-reverse;
+    padding: 10px;
+  }
+  .chat-list .chat-item .chat-img-wrapper {
+    top: 0;
+    transform: translateY(0px);
+    width: 100%;
+    height: auto;
+    gap: 3px;
+  }
+  .chat-list .chat-item .chat-img-wrapper .profile-pic {
+    position: relative;
+    top: 0;
+    left: 0;
+  }
+  .chat-item .chat-text-wrapper {
+    width: 100%;
+    gap: 10px;
   }
 }
 </style>
