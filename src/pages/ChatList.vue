@@ -308,6 +308,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .chat-list-title {
@@ -340,6 +341,8 @@ export default {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
 }
 
 .chat-item {
@@ -347,6 +350,8 @@ export default {
   flex-direction: row;
   padding: 15px;
   border-bottom: 1px solid #f0f0f0;
+  width: 100%;
+  gap: 5px;
 }
 
 .chat-item:hover {
@@ -361,7 +366,9 @@ export default {
   display: flex;
   position: relative;
   width: 50px; /* 전체 프로필 이미지 영역의 넓이 */
-  height: 50px; /* 전체 프로필 이미지 영역의 높이 */
+  height: 50px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 .chat-item .chat-img-wrapper .profile-pic {
   width: 30px; /* 각 이미지의 크기 */
@@ -400,6 +407,7 @@ export default {
 .chat-item .chat-text-wrapper {
   display: flex;
   flex: 1;
+  width: calc(100% - 55px);
   flex-direction: column;
 }
 
@@ -477,10 +485,16 @@ export default {
   font-size: 0.9rem;
   color: #555555;
   margin-top: 5px;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chat-message-wrapper .chat-message-time {
   color: #999;
+  min-width: 65px;
+  text-align: right;
 }
 
 @media (max-width: 768px) {
