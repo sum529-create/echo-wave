@@ -36,7 +36,7 @@
         :class="{
           'message-color': user.uid === message.userId,
           'message-announce': message.isAnnouncement,
-          [`message-user-${message.idx}`]: true,
+          [`message-user-${getMessageIdx(message.userId)}`]: true,
         }"
       >
         <div class="messages-container-left">
@@ -124,10 +124,8 @@ export default {
       if (this.newMessage.trim() === "") return;
       const chatDocRef = doc(db, "chats", this.chatId);
       try {
-        const chatPersonIdx = this.chatInfo.participants.findIndex(
-          (e) => e.uid === this.user.uid
-        );
-        console.log(chatPersonIdx);
+        await this.fetchChatInfo();
+
         await updateDoc(chatDocRef, {
           messages: arrayUnion({
             text: this.newMessage,
@@ -135,7 +133,6 @@ export default {
             userName: this.user.displayName,
             userId: this.user.uid,
             createdAt: new Date().toLocaleString(),
-            idx: chatPersonIdx + 1,
           }),
           lastMessage: this.newMessage,
           lastMessageTimeStamp: new Date().toLocaleString(),
@@ -164,11 +161,16 @@ export default {
         }
       } else {
         if (confirm("채팅방을 나가시겠습니까?")) {
+          const userIdx = this.chatInfo.participants.find(
+            (e) => e.uid === this.user.uid
+          ).idx;
+
           try {
             await updateDoc(chatDocRef, {
               participants: arrayRemove({
                 uid: this.user.uid,
                 photoUrl: this.user.photoURL,
+                idx: userIdx,
               }),
               messages: arrayUnion({
                 text: "[🙇‍♀️ " + this.user.displayName + "님이 퇴장하셨습니다.]",
@@ -188,6 +190,9 @@ export default {
           }
         }
       }
+    },
+    getMessageIdx(uid) {
+      return this.chatInfo.participants.find((e) => e.uid === uid).idx;
     },
   },
 };

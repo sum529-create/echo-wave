@@ -102,6 +102,7 @@ export default {
             {
               uid: user.uid,
               photoUrl: photoUrl,
+              idx: 1,
             },
           ],
           messages: [

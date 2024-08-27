@@ -120,10 +120,22 @@ export default {
           }
           if (confirm("해당 채팅룸에 입장하시겠습니까?")) {
             const chatDocRef = doc(db, "chats", chatId);
+
+            const existingIndexes = chatInfo.participants
+              .map((msg) => msg.idx)
+              .filter((idx) => idx !== undefined && idx !== null);
+
+            // 0부터 시작해서 빈 인덱스를 찾음
+            let newIdx = 1;
+            while (existingIndexes.includes(newIdx) && newIdx <= 4) {
+              newIdx++;
+            }
+
             await updateDoc(chatDocRef, {
               participants: arrayUnion({
                 uid: this.user.uid,
                 photoUrl: this.user.photoURL,
+                idx: newIdx,
               }),
               messages: arrayUnion({
                 text: "[🙋‍♀️ " + this.user.displayName + "님이 입장하셨습니다.]",
@@ -137,8 +149,6 @@ export default {
                 "[🙋‍♀️ " + this.user.displayName + "님이 입장하셨습니다.]",
               lastMessageTimeStamp: new Date().toLocaleString(),
             });
-          } else {
-            return;
           }
         }
         this.$router.push({ name: "Chat", params: { chatId } });
