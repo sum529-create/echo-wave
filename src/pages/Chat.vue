@@ -77,6 +77,7 @@ import {
   arrayUnion,
   deleteDoc,
   arrayRemove,
+  setDoc,
 } from "firebase/firestore";
 
 export default {
@@ -88,6 +89,7 @@ export default {
       chatId: null,
       user: {},
       chatInfo: {},
+      unsubscribe: null,
     };
   },
   created() {
@@ -96,10 +98,26 @@ export default {
   },
   async mounted() {
     await this.fetchChatInfo();
+    const deletedChatRoomsQuery = query(collection(db, "deletedChatRooms"));
+
+    this.unsubscribe = onSnapshot(deletedChatRoomsQuery, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const deletedChatRoomId = change.doc.id;
+          if (deletedChatRoomId === this.chatId) {
+            // 현재 채팅방이 삭제된 경우 페이지 이동
+            this.moveToPage("/list");
+          }
+        }
+      });
+    });
   },
   beforeDestroy() {
     if (this.unsub) {
       this.unsub(); // onSnapshot 리스너를 정리
+    }
+    if (this.unsubscribe) {
+      this.unsubscribe();
     }
   },
   methods: {
@@ -151,6 +169,11 @@ export default {
         ) {
           try {
             await deleteDoc(chatDocRef);
+
+            await setDoc(doc(db, "deletedChatRooms", this.chatId), {
+              deletedAt: new Date(),
+            });
+
             this.moveToPage("/list");
           } catch (error) {
             console.error("Failed To Delete Chat Room", error);
