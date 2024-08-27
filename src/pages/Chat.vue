@@ -44,8 +44,13 @@
         }"
       >
         <div class="messages-container-left">
-          <strong class="message-user"
-            >{{ message.isAnnouncement ? "❤️ " : message.userName + ": " }}
+          <strong class="message-user">
+            {{
+              !message.isAnnouncement && message.userId === chatInfo.userId
+                ? "👑"
+                : ""
+            }}
+            {{ message.isAnnouncement ? "❤️ " : message.userName + ": " }}
           </strong>
           <span>{{ message.text }}</span>
         </div>
@@ -361,6 +366,7 @@ export default {
 .messages-container .message-time {
   color: #999;
   font-size: 12px;
+  min-width: 63px;
 }
 
 .message {
@@ -372,6 +378,7 @@ export default {
   border-radius: 5px;
   border: 1px solid #000;
   position: relative;
+  gap: 5px;
 }
 
 .message-left-tail {
