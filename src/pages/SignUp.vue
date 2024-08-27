@@ -10,7 +10,8 @@
           maxlength="15"
           minlength="2"
           placeholder="이름/닉네임"
-          name="username"
+          name="unique_username_field"
+          autocomplete="new-username"
         />
       </div>
       <div class="input-icon input-email">
@@ -19,7 +20,8 @@
           type="email"
           required
           placeholder="이메일 주소"
-          name="email"
+          name="unique_email_field"
+          autocomplete="new-email"
         />
       </div>
       <div class="input-icon input-password">
@@ -28,7 +30,8 @@
           type="password"
           required
           placeholder="비밀번호"
-          name="password"
+          name="unique_password_field"
+          autocomplete="new-password"
         />
       </div>
       <span class="info-txt"
@@ -42,7 +45,8 @@
           type="number"
           required
           placeholder="생년월일 6자리 (ex. YYMMDD)"
-          name="birth"
+          name="unique_birth_field"
+          autocomplete="off"
         />
       </div>
       <div class="gender-selector">
@@ -53,8 +57,9 @@
           <input
             type="radio"
             id="male"
-            name="gender"
+            name="unique_gender_field"
             value="male"
+            autocomplete="off"
             v-model="selectedGender"
           />
           <span class="button-text">남성</span>
@@ -67,8 +72,9 @@
           <input
             type="radio"
             id="female"
-            name="gender"
+            name="unique_gender_field"
             value="female"
+            autocomplete="off"
             v-model="selectedGender"
           />
           <span class="button-text">여성</span>
@@ -81,8 +87,9 @@
           <input
             type="radio"
             id="other"
-            name="gender"
+            name="unique_gender_field"
             value="other"
+            autocomplete="off"
             v-model="selectedGender"
           />
           <span class="button-text">미선택</span>
