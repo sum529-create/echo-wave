@@ -89,6 +89,7 @@ import {
   orderBy,
   query,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 export default {
@@ -99,12 +100,19 @@ export default {
       isPopupVisible: false,
       chatRooms: [],
       user: {},
+      unsubscribe: null,
     };
   },
   computed: {},
   async mounted() {
     await this.getChatRoomList();
     this.user = auth.currentUser;
+  },
+  beforeDestroy() {
+    if (this.unsubscribe) {
+      this.unsubscribe(); // 리스너 정리
+      this.unsubscribe = null; // 리스너 함수 초기화
+    }
   },
   methods: {
     async goToChat(chatInfo) {
@@ -161,11 +169,20 @@ export default {
           orderBy("lastMessageTimeStamp", "desc"),
           limit(12)
         );
-        const docSnap = await getDocs(chatQuery);
-        this.chatRooms = docSnap.docs.map((doc) => ({
-          id: doc.id, // 문서 ID 포함
-          ...doc.data(),
-        }));
+        this.unsubscribe = onSnapshot(
+          chatQuery,
+          (snapshot) => {
+            // 문서 데이터를 배열로 변환
+            this.chatRooms = snapshot.docs.map((doc) => ({
+              id: doc.id, // 문서 ID 포함
+              ...doc.data(),
+            }));
+          },
+          (error) => {
+            // 에러 핸들링
+            console.error("채팅 방 목록 가져오기 실패", error);
+          }
+        );
       } catch (error) {
         console.error("Failed to Fetching Chat Romm List", error);
       }
