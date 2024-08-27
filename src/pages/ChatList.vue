@@ -17,12 +17,12 @@
               :src="data.photoUrl ? data.photoUrl : '/logo.png'"
               :alt="`Profile ${i + 1}`"
               class="profile-pic"
-              :style="{
+            />
+            <!-- :style="{
                 zIndex: chat.participants.length - i,
                 left: `${i * 15}px`,
                 top: `${Math.floor(i / 2) * 15}px`,
-              }"
-            />
+              }" -->
           </div>
           <div class="chat-text-wrapper">
             <div class="chat-title-wrapper">

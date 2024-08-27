@@ -10,12 +10,12 @@
             :src="data.photoUrl ? data.photoUrl : '/logo.png'"
             :alt="`Profile ${i + 1}`"
             class="profile-pic"
-            :style="{
+          />
+          <!-- :style="{
               zIndex: chatInfo.participants.length - i,
               left: `${i * 15}px`,
               top: `${Math.floor(i / 2) * 15}px`,
-            }"
-          />
+            }" -->
         </div>
         <div class="chat-info">
           <h1>{{ chatInfo.title }}</h1>
@@ -36,7 +36,8 @@
         :class="{
           'message-color': user.uid === message.userId,
           'message-announce': message.isAnnouncement,
-          [`message-user-${getMessageIdx(message.userId)}`]: true,
+          [`message-user-${getMessageIdx(message.userId)}`]:
+            !message.isAnnouncement,
         }"
       >
         <div class="messages-container-left">
@@ -95,13 +96,6 @@ export default {
   },
   async mounted() {
     await this.fetchChatInfo();
-    const chatDocRef = doc(db, "chats", this.chatId);
-    this.unsub = onSnapshot(chatDocRef, (doc) => {
-      if (doc.exists()) {
-        const chatData = doc.data();
-        this.messages = chatData.messages || []; // 메시지 배열을 가져옴
-      }
-    });
   },
   beforeDestroy() {
     if (this.unsub) {
@@ -113,9 +107,12 @@ export default {
       if (!this.user?.uid || !this.chatId) return;
       try {
         const chatDocRef = doc(db, "chats", this.chatId);
-        const docSnap = await getDoc(chatDocRef);
-        if (docSnap.exists());
-        this.chatInfo = docSnap.data();
+        this.unsub = onSnapshot(chatDocRef, (doc) => {
+          if (doc.exists()) {
+            this.chatInfo = doc.data();
+            this.messages = this.chatInfo.messages || []; // 메시지 배열을 가져옴
+          }
+        });
       } catch (error) {
         console.error("Failed to Fetch ChatRomm Info");
       }
@@ -192,7 +189,13 @@ export default {
       }
     },
     getMessageIdx(uid) {
-      return this.chatInfo.participants.find((e) => e.uid === uid).idx;
+      const participant = this.chatInfo.participants.find((e) => e.uid === uid);
+
+      if (participant) {
+        return participant.idx;
+      } else {
+        return null;
+      }
     },
   },
 };
