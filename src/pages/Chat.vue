@@ -34,7 +34,10 @@
         :key="message.id"
         class="message"
         :class="{
-          'message-color': user.uid === message.userId,
+          'message-right-tail':
+            user.uid === message.userId && !message.isAnnouncement,
+          'message-left-tail':
+            user.uid !== message.userId && !message.isAnnouncement,
           'message-announce': message.isAnnouncement,
           [`message-user-${getMessageIdx(message.userId)}`]:
             !message.isAnnouncement,
@@ -230,7 +233,7 @@ export default {
   max-width: 500px;
   width: 100%;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 123px);
   position: relative;
   background-color: #f4f4f4;
   padding: 20px;
@@ -367,12 +370,15 @@ export default {
   margin-bottom: 10px;
   padding: 10px;
   border-radius: 5px;
-  border: 1px solid #ffb74d;
+  border: 1px solid #000;
   position: relative;
+}
+
+.message-left-tail {
   margin-left: 10px;
 }
 
-.message::before {
+.message.message-left-tail::before {
   content: "";
   position: absolute;
   left: -10px; /* Adjust this to control the position of the tail */
@@ -380,37 +386,45 @@ export default {
   transform: translateY(-50%);
   width: 0;
   height: 0;
-  border-right: 10px solid #ffb74d;
+  border-right: 10px solid #000;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
 }
 
-.message.message-color {
+.message.message-right-tail {
   margin-left: 0;
   margin-right: 10px;
 }
 
-.message.message-color::before {
+.message.message-right-tail::before {
   content: "";
   position: absolute;
-  right: -10px; /* Adjust this to control the position of the tail */
+  right: -10px;
   top: 50%;
   transform: translateY(-50%);
   width: 0;
   height: 0;
   border-right: 0;
   left: auto;
-  border-left: 10px solid #ffcccc;
+  border-left: 10px solid #000;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
 }
 
 .message-user-1 {
-  background-color: #ffb74d; /* 밝은 오렌지 */
+  background-color: #ffe0b2; /* 밝은 오렌지 */
+  border-color: #ffe0b2;
+}
+
+.message-right-tail.message-user-1::before {
+  border-left-color: #ffe0b2;
+}
+.message-left-tail.message-user-1::before {
+  border-right-color: #ffe0b2;
 }
 
 .message-user-1 .message-time {
-  color: #b0bec5;
+  color: #6d6d6d;
 }
 
 .message-user-1 .message-user {
@@ -418,11 +432,19 @@ export default {
 }
 
 .message-user-2 {
-  background-color: #f48fb1; /* 연한 핑크 */
+  background-color: #f8c6d4; /* 연한 핑크 */
+  border-color: #f8c6d4;
+}
+
+.message-right-tail.message-user-2::before {
+  border-left-color: #f8c6d4;
+}
+.message-left-tail.message-user-2::before {
+  border-right-color: #f8c6d4;
 }
 
 .message-user-2 .message-time {
-  color: #b0bec5;
+  color: #666;
 }
 
 .message-user-2 .message-user {
@@ -430,11 +452,19 @@ export default {
 }
 
 .message-user-3 {
-  background-color: #ffab91; /* 파스텔 오렌지 */
+  background-color: #ffd2c4; /* 파스텔 오렌지 */
+  border-color: #ffd2c4;
+}
+
+.message-right-tail.message-user-3::before {
+  border-left-color: #ffd2c4;
+}
+.message-left-tail.message-user-3::before {
+  border-right-color: #ffd2c4;
 }
 
 .message-user-3 .message-time {
-  color: #cfd8dc;
+  color: #7d7d7d;
 }
 
 .message-user-3 .message-user {
@@ -443,10 +473,18 @@ export default {
 
 .message-user-4 {
   background-color: #fce4ec; /* 크림 핑크 */
+  border-color: #fce4ec;
+}
+
+.message-right-tail.message-user-4::before {
+  border-left-color: #fce4ec;
+}
+.message-left-tail.message-user-4::before {
+  border-right-color: #fce4ec;
 }
 
 .message-user-4 .message-time {
-  color: #cfd8dc;
+  color: #707070;
 }
 
 .message-user-4 .message-user {
@@ -454,9 +492,9 @@ export default {
 }
 
 .message.message-announce {
-  background-color: #ffebf0; /* Light pink for notice */
-  border: 1px solid #f8c4d6; /* Slightly darker pink border */
-  color: #d63a5d; /* Darker pink for text */
+  background-color: #b2dfdb;
+  border: 1px solid #4db6ac;
+  color: #003c49;
   font-weight: bold;
   text-align: center;
   font-style: italic;
@@ -496,5 +534,13 @@ button {
 
 button:hover {
   background-color: #c41857; /* 호버 시 색상 변경 */
+}
+@media (max-width: 768px) {
+  .message {
+    flex-direction: column;
+  }
+  .messages-container .message-time {
+    text-align: right;
+  }
 }
 </style>

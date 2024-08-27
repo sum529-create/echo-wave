@@ -282,7 +282,7 @@ export default {
   display: flex;
   flex-direction: row;
   width: 100%;
-  height: calc(100vh - 121px);
+  height: calc(100vh - 123px);
   justify-content: center;
   gap: 40px;
   margin: 0px auto;
