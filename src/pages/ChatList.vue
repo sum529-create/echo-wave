@@ -162,7 +162,7 @@ export default {
         this.$router.push({ name: "Chat", params: { chatId } });
       }
     },
-    async getChatRoomList() {
+    async getChatRoomList(chatId) {
       try {
         const chatQuery = query(
           collection(db, "chats"),
@@ -183,6 +183,8 @@ export default {
             console.error("채팅 방 목록 가져오기 실패", error);
           }
         );
+        // 채팅방 생성시 자동으로 채팅방 입성
+        if (chatId) this.$router.push({ name: "Chat", params: { chatId } });
       } catch (error) {
         console.error("Failed to Fetching Chat Romm List", error);
       }

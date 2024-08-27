@@ -118,7 +118,7 @@ export default {
           peopleLimit: this.peopleLimit,
           // ageLimit: this.ageLimit,
         });
-        this.$emit("create");
+        this.$emit("create", chatId);
         this.isLoading = false;
         this.closePopup();
       } catch (error) {
