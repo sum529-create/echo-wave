@@ -2,7 +2,7 @@
   <div class="chat-container">
     <div class="chat-header">
       <div class="chat-header-left">
-        <div @click="moveToPage('/list')" class="chat-return"></div>
+        <div @click="setLastTimeStamp()" class="chat-return"></div>
         <div class="profile-pics">
           <img
             v-for="(data, i) in chatInfo.participants"
@@ -226,6 +226,34 @@ export default {
         return participant.idx;
       } else {
         return null;
+      }
+    },
+    async setLastTimeStamp() {
+      if (!this.chatInfo && !this.user) return;
+      try {
+        const chatDocRef = doc(db, "chats", this.chatId);
+        const docSnap = await getDoc(chatDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const participants = data.participants;
+
+          const updatedParticipants = participants.map((e) => {
+            if (e.uid === this.user.uid) {
+              return {
+                ...e,
+                lastReadMessageTimestamp: new Date().toLocaleString(),
+              };
+            }
+            return e;
+          });
+          await updateDoc(chatDocRef, {
+            participants: updatedParticipants,
+          });
+        }
+      } catch (error) {
+        console.error("Failed To Setting LastTimeStamp", error);
+      } finally {
+        this.moveToPage("/list");
       }
     },
   },

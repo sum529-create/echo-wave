@@ -4,6 +4,26 @@
     <div class="chat-list-container">
       <div class="chat-list-header">
         <h2 class="chat-list-title">Chat Rooms</h2>
+        <div class="chat-total-counts">
+          <svg
+            data-slot="icon"
+            fill="none"
+            stroke-width="1.5"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.652-3.978c.26-.39.687-.634 1.153-.67 1.09-.086 2.17-.208 3.238-.365 1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
+            ></path>
+          </svg>
+          <span class="chat-counts">
+            {{ getChatTotalUnreadMessages }}
+          </span>
+        </div>
         <button @click="openPopup" class="create-chat-button">
           + Create New Chat
         </button>
@@ -44,11 +64,15 @@
                   (isParticipantingChat(chat.participants) ? " (참여중)" : "")
                 }}</span>
               </div>
-              <div
-                v-if="user.uid === chat.userId"
-                class="chat-title-wrapper-right"
-              >
+              <div class="chat-title-wrapper-right">
+                <span
+                  v-if="unreadCounts[chat.chatId] !== 0"
+                  class="chat-counts"
+                >
+                  {{ unreadCounts[chat.chatId] }}
+                </span>
                 <button
+                  v-if="user.uid === chat.userId"
                   @click="deleteChatRoom(chat.userId, chat.chatId)"
                   class="chat-delete-btn"
                 >
@@ -90,6 +114,7 @@ import {
   query,
   updateDoc,
   onSnapshot,
+  where,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 export default {
@@ -101,17 +126,41 @@ export default {
       chatRooms: [],
       user: {},
       unsubscribe: null,
+      unSub: null,
+      unreadCounts: {},
     };
   },
-  computed: {},
+  computed: {
+    getChatTotalUnreadMessages() {
+      return Object.values(this.unreadCounts).reduce(
+        (total, count) => total + count,
+        0
+      );
+    },
+  },
   async mounted() {
     await this.getChatRoomList();
     this.user = auth.currentUser;
+  },
+  watch: {
+    chatRooms(newVal) {
+      if (newVal.length > 0) {
+        newVal.forEach((chat) => {
+          this.getForUnreadMessages(chat.chatId, this.user.uid, (count) => {
+            this.$set(this.unreadCounts, chat.chatId, count);
+          });
+        });
+      }
+    },
   },
   beforeDestroy() {
     if (this.unsubscribe) {
       this.unsubscribe(); // 리스너 정리
       this.unsubscribe = null; // 리스너 함수 초기화
+    }
+    if (this.unSub) {
+      this.unSub();
+      this.unSub = null;
     }
   },
   methods: {
@@ -272,6 +321,46 @@ export default {
     isParticipantingChat(person) {
       return person.find((e) => e.uid === this.user.uid) ? true : false;
     },
+    async getForUnreadMessages(chatId, userId, callback) {
+      try {
+        const chatDocRef = doc(db, "chats", chatId);
+
+        this.onSub = onSnapshot(chatDocRef, async (doc) => {
+          if (doc.exists()) {
+            const chatData = doc.data();
+
+            // 사용자 마지막 읽은 메시지 타임스탬프 가져오기
+            const userParticipant = chatData.participants.find(
+              (p) => p.uid === userId
+            );
+            const userLastReadTimeStampString =
+              userParticipant?.lastReadMessageTimestamp ||
+              "1970. 1. 1. 오전 00:00:00";
+            const userLastReadTimestamp = this.parseCustomDateToTimestamp(
+              userLastReadTimeStampString
+            );
+            // 메시지 타임스탬프를 Unix 타임스탬프로 변환하여 비교
+            const unreadMessages = chatData.messages.filter((doc) => {
+              const messageCreatedAtString = doc.createdAt;
+              const messageCreatedAtTimestamp = this.parseCustomDateToTimestamp(
+                messageCreatedAtString
+              );
+              return messageCreatedAtTimestamp > userLastReadTimestamp;
+            });
+
+            const unreadCnt = unreadMessages.length;
+
+            callback(unreadCnt);
+          } else {
+            console.log("Chat document does not exist.");
+            callback(0);
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching unread messages:", error);
+        callback(0);
+      }
+    },
   },
 };
 </script>
@@ -311,11 +400,34 @@ export default {
   align-items: center;
   margin-bottom: 20px;
   width: 100%;
+  gap: 10px;
 }
 
 .chat-list-title {
   font-size: 1.5rem;
   color: #de1b60;
+}
+
+.chat-total-counts {
+  position: relative;
+  min-width: 50px;
+  height: 48px;
+}
+
+.chat-total-counts .chat-counts {
+  position: absolute;
+  top: 0;
+  left: 28px;
+}
+
+.chat-total-counts svg {
+  width: 35px;
+  height: 35px;
+  fill: #f7cbc1c0;
+  color: #ff6f61;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }
 
 /* 버튼 스타일링 */
@@ -341,6 +453,7 @@ export default {
   margin: 0;
   max-height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -351,6 +464,7 @@ export default {
   display: flex;
   flex-direction: row;
   padding: 15px;
+  padding-right: 25px;
   border-bottom: 1px solid #f0f0f0;
   width: 100%;
   gap: 5px;
@@ -420,16 +534,6 @@ export default {
   gap: 20px;
 }
 
-.chat-item
-  .chat-text-wrapper
-  .chat-title-wrapper
-  .chat-title-wrapper-right
-  button {
-  color: #333;
-  padding: 0;
-  line-height: 24px;
-}
-
 .chat-item .chat-text-wrapper .chat-title-wrapper .chat-title-wrapper-left {
   flex: 1;
   cursor: pointer;
@@ -477,6 +581,46 @@ export default {
   vertical-align: middle;
 }
 
+.chat-item .chat-text-wrapper .chat-title-wrapper .chat-title-wrapper-right {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center; /* 원형 요소를 세로로 정렬 */
+  justify-content: center; /* 원형 요소를 가로로 정렬 */
+  position: relative;
+}
+
+.chat-item
+  .chat-text-wrapper
+  .chat-title-wrapper
+  .chat-title-wrapper-right
+  .chat-delete-btn {
+  color: #333;
+  padding: 0;
+  line-height: 24px;
+  position: absolute;
+  right: -22px;
+}
+
+.chat-item
+  .chat-text-wrapper
+  .chat-title-wrapper
+  .chat-title-wrapper-right
+  .chat-counts,
+.chat-counts {
+  min-width: 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #e74c3c; /* 원형 배경색 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* 마지막 메시지 스타일링 */
 .chat-message-wrapper {
   display: flex;
@@ -516,6 +660,7 @@ export default {
   .chat-list .chat-item {
     flex-direction: column-reverse;
     padding: 10px;
+    padding-right: 20px;
   }
   .chat-list .chat-item .chat-img-wrapper {
     top: 0;
