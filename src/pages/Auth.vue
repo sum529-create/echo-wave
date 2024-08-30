@@ -15,7 +15,12 @@
         placeholder="Password"
       />
       <button @click="login" class="btn_coral mb10">Login</button>
-      <button @click="moveToPage('/sign-up')" class="btn_pink">Sign Up</button>
+      <button @click="moveToPage('/sign-up')" class="btn_pink mb10">
+        Sign Up
+      </button>
+      <span @click="moveToPage('/pw-inquiry')" class="find-password">
+        비밀번호 찾기
+      </span>
     </div>
   </div>
 </template>
@@ -54,3 +59,18 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.find-password {
+  font-size: 14px;
+  color: #ff6f61;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 10px;
+  display: inline-block;
+  transition: color 0.3s ease;
+}
+.find-password:hover {
+  color: #af5959;
+}
+</style>

@@ -7,12 +7,14 @@ import Auth from "../pages/Auth.vue";
 import Chat from "../pages/Chat.vue";
 import ChatList from "../pages/ChatList.vue";
 import SignUp from "../pages/SignUp.vue";
+import PwInquriy from "../pages/PwInquiry.vue";
 
 Vue.use(VueRouter);
 
 const routes = [
   { path: "/login", component: Auth, name: "Login" },
   { path: "/sign-up", component: SignUp, name: "SignUp" },
+  { path: "/pw-inquiry", component: PwInquriy, name: "PwInquiry" },
   {
     path: "/list",
     component: ChatList,

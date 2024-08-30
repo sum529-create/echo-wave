@@ -24,9 +24,6 @@
             {{ getChatTotalUnreadMessages }}
           </span>
         </div>
-        <button @click="openPopup" class="create-chat-button">
-          + Create New Chat
-        </button>
       </div>
       <ul class="chat-list">
         <li v-for="chat in chatRooms" :key="chat.id" class="chat-item">
@@ -74,7 +71,10 @@
                 <button
                   v-if="user.uid === chat.userId"
                   @click="deleteChatRoom(chat.userId, chat.chatId)"
-                  class="chat-delete-btn"
+                  :class="{
+                    'chat-delete-btn': true,
+                    'chat-delete-btn-position': unreadCounts[chat.chatId] !== 0,
+                  }"
                 >
                   X
                 </button>
@@ -89,6 +89,9 @@
           </div>
         </li>
       </ul>
+      <button @click="openPopup" class="create-chat-button">
+        + Create New Chat
+      </button>
     </div>
     <create-chat
       v-if="isPopupVisible"
@@ -96,6 +99,44 @@
       @close="closePopup"
       @create="getChatRoomList"
     />
+    <button id="scrollToTopBtn" class="fixedBtn" @click="scrollToTop">
+      <svg
+        data-slot="icon"
+        fill="none"
+        stroke-width="1.5"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+        ></path>
+      </svg>
+    </button>
+    <button
+      id="scrollAddChatBtn"
+      class="fixedBtn create-chat-button-mo"
+      @click="openPopup"
+    >
+      <svg
+        data-slot="icon"
+        fill="none"
+        stroke-width="1.5"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"
+        ></path>
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -141,6 +182,7 @@ export default {
   async mounted() {
     await this.getChatRoomList();
     this.user = auth.currentUser;
+    window.addEventListener("scroll", this.toggleScrollButton);
   },
   watch: {
     chatRooms(newVal) {
@@ -162,6 +204,7 @@ export default {
       this.unSub();
       this.unSub = null;
     }
+    window.removeEventListener("scroll", this.toggleScrollButton);
   },
   methods: {
     async goToChat(chatInfo) {
@@ -361,6 +404,21 @@ export default {
         callback(0);
       }
     },
+    scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    },
+    toggleScrollButton() {
+      const button1 = document.getElementById("scrollToTopBtn");
+
+      if (window.scrollY > 300) {
+        button1.classList.add("show");
+      } else {
+        button1.classList.remove("show");
+      }
+    },
   },
 };
 </script>
@@ -387,6 +445,7 @@ export default {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
+  padding-bottom: 58px;
   overflow: hidden;
   position: relative;
   display: flex;
@@ -432,11 +491,14 @@ export default {
 
 /* 버튼 스타일링 */
 .create-chat-button {
+  position: absolute;
+  bottom: 0;
+  left: 0;
   background-color: #ff6f61;
   color: #ffffff;
   border: none;
   padding: 10px 20px;
-  border-radius: 4px;
+  border-radius: 0px;
   cursor: pointer;
   font-size: 1rem;
   transition: background-color 0.3s ease;
@@ -455,6 +517,7 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
+  flex: 1;
   flex-direction: column;
   width: 100%;
   max-width: 100%;
@@ -599,7 +662,15 @@ export default {
   padding: 0;
   line-height: 24px;
   position: absolute;
-  right: -22px;
+  right: -8px;
+}
+
+.chat-item
+  .chat-text-wrapper
+  .chat-title-wrapper
+  .chat-title-wrapper-right
+  .chat-delete-btn.chat-delete-btn-position {
+  right: -23px;
 }
 
 .chat-item
@@ -643,6 +714,44 @@ export default {
   text-align: right;
 }
 
+/* mobile scroll to */
+.fixedBtn {
+  width: auto;
+  position: fixed;
+  bottom: 50px;
+  right: 20px;
+  background-color: #f9825e;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  display: none;
+}
+
+.fixedBtn:hover {
+  background-color: #fa5928;
+}
+
+.fixedBtn.show {
+  display: block;
+}
+
+.fixedBtn svg {
+  width: 20px;
+}
+.create-chat-button-mo {
+  background-color: #ff7979;
+  bottom: 100px;
+}
+.create-chat-button-mo:hover {
+  background-color: #d63031;
+}
+
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
@@ -653,6 +762,7 @@ export default {
   }
   .chat-list-container {
     min-width: auto;
+    padding: 20px;
   }
   .chat-list {
     overflow-y: hidden;
@@ -677,6 +787,12 @@ export default {
   .chat-item .chat-text-wrapper {
     width: 100%;
     gap: 10px;
+  }
+  .create-chat-button {
+    display: none;
+  }
+  .create-chat-button-mo {
+    display: block;
   }
 }
 </style>
