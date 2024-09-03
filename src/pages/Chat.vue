@@ -28,7 +28,7 @@
       </div>
       <div @click="exitChatRoom" class="chat-header-right icon-exit"></div>
     </div>
-    <div class="messages-container">
+    <div ref="scrollableBottom" class="messages-container">
       <div
         v-for="message in messages"
         :key="message.id"
@@ -161,6 +161,8 @@ export default {
           lastMessageTimeStamp: new Date().toLocaleString(),
         });
 
+        const chatBottom = this.$refs.scrollableBottom;
+        chatBottom.scrollTop = chatBottom.scrollHeight;
         this.newMessage = "";
       } catch (error) {
         console.error("Failed to send message", error);
