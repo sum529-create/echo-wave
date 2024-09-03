@@ -436,6 +436,7 @@ export default {
   max-width: 1280px;
   padding: 2rem;
   background-color: #f4f4f4;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 .chat-list-container {
   flex: 3;
