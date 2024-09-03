@@ -84,7 +84,18 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f4f4f4; /* 부드러운 배경색 */
+  background-color: #e0e0e0; /* #f4f4f4보다 약간 어두운 색상 */
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 10px 10px;
 }
 
 /* 푸터 스타일링 */

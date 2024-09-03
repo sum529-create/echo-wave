@@ -435,6 +435,7 @@ export default {
   margin: 0px auto;
   max-width: 1280px;
   padding: 2rem;
+  background-color: #f4f4f4;
 }
 .chat-list-container {
   flex: 3;
