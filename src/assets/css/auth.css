@@ -3,7 +3,6 @@
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-color: #f4f4f4;
 }
 
 .auth-form {
@@ -25,4 +24,17 @@ h1 {
   color: #ff6f61;
   margin-bottom: 1rem;
   font-size: 2rem;
+}
+
+.sub-info-text {
+  font-size: 14px;
+  color: #ff6f61;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 10px;
+  display: inline-block;
+  transition: color 0.3s ease;
+}
+.sub-info-text:hover {
+  color: #af5959;
 }

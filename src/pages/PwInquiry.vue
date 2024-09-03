@@ -7,13 +7,16 @@
         @keyup.enter="handleResetPassword"
         @change="initError"
         type="email"
-        placeholder="Email"
+        placeholder="가입하신 이메일"
       />
       <div v-if="error" class="alert">
         <span class="icon">⚠️</span>
         {{ error }}
       </div>
       <button @click="handleResetPassword" class="btn_coral mt10">확인</button>
+      <span @click="moveToPage('/login')" class="sub-info-text">
+        로그인 페이지로
+      </span>
     </div>
     <div v-if="isLoading" class="loading-screen">
       <div class="spinner"></div>
