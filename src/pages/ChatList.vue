@@ -63,7 +63,9 @@
               </div>
               <div class="chat-title-wrapper-right">
                 <span
-                  v-if="unreadCounts[chat.chatId] !== 0"
+                  v-if="
+                    unreadCounts[chat.chatId] && unreadCounts[chat.chatId] !== 0
+                  "
                   class="chat-counts"
                 >
                   {{ unreadCounts[chat.chatId] }}
@@ -188,9 +190,13 @@ export default {
     chatRooms(newVal) {
       if (newVal.length > 0) {
         newVal.forEach((chat) => {
-          this.getForUnreadMessages(chat.chatId, this.user.uid, (count) => {
-            this.$set(this.unreadCounts, chat.chatId, count);
-          });
+          const isInclude = chat.participants.some(
+            (e) => e.uid === this.user.uid
+          );
+          if (isInclude)
+            this.getForUnreadMessages(chat.chatId, this.user.uid, (count) => {
+              this.$set(this.unreadCounts, chat.chatId, count);
+            });
         });
       }
     },
